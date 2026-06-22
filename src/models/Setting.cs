@@ -26,6 +26,7 @@ namespace LiveCaptionsTranslator.models
 
         private string apiName;
         private string targetLanguage;
+        private string interfaceLanguage = "ja";
         private string prompt;
         private string? ignoredUpdateVersion;
 
@@ -127,6 +128,15 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("TargetLanguage");
             }
         }
+        public string InterfaceLanguage
+        {
+            get => interfaceLanguage;
+            set
+            {
+                interfaceLanguage = value;
+                OnPropertyChanged("InterfaceLanguage");
+            }
+        }
         public string Prompt
         {
             get => prompt;
@@ -202,7 +212,8 @@ namespace LiveCaptionsTranslator.models
         public Setting()
         {
             apiName = "Google";
-            targetLanguage = "zh-CN";
+            targetLanguage = "ja-JP";
+            interfaceLanguage = "ja";
             prompt = "As an professional simultaneous interpreter with specialized knowledge in the all fields, " +
                      "you can provide a fluent and precise oral translation for any sentence, even if the sentence is incomplete. " +
                      "Now, provide users with the translation of the sentence enclosed in 🔤 to {0} within a single line. " +

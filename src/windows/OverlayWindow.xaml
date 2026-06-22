@@ -107,7 +107,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon Translate24,
                                              Filled=False}"
-                        ToolTip="Translate Now" />
+                        ToolTip="{DynamicResource ToolTipOverlayTranslate}" />
                     <ui:Button
                         x:Name="FontSizeIncrease"
                         Background="#FFAAAAAA"
@@ -115,7 +115,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon fontIncrease20,
                                              Filled=False}"
-                        ToolTip="Font Size Increase" />
+                        ToolTip="{DynamicResource ToolTipFontSizeIncrease}" />
                     <ui:Button
                         x:Name="FontSizeDecrease"
                         Background="#FFAAAAAA"
@@ -123,7 +123,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon fontDecrease20,
                                              Filled=False}"
-                        ToolTip="Font Size Decrease" />
+                        ToolTip="{DynamicResource ToolTipFontSizeDecrease}" />
                     <ui:Button
                         x:Name="FontStrokeIncrease"
                         Background="#FFAAAAAA"
@@ -131,7 +131,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon InkStroke20,
                                              Filled=True}"
-                        ToolTip="Font Stroke Increase" />
+                        ToolTip="{DynamicResource ToolTipFontStrokeIncrease}" />
                     <ui:Button
                         x:Name="FontStrokeDecrease"
                         Background="#FFAAAAAA"
@@ -139,7 +139,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon InkStrokeArrowDown20,
                                              Filled=False}"
-                        ToolTip="Font Stroke Decrease" />
+                        ToolTip="{DynamicResource ToolTipFontStrokeDecrease}" />
                     <ui:Button
                         x:Name="FontBold"
                         Background="#FFAAAAAA"
@@ -147,7 +147,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon textBold16,
                                              Filled=False}"
-                        ToolTip="Font Bold" />
+                        ToolTip="{DynamicResource ToolTipFontBold}" />
                     <ui:Button
                         x:Name="FontColorCycle"
                         Background="#FFAAAAAA"
@@ -155,7 +155,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon color16,
                                              Filled=False}"
-                        ToolTip="Font Color" />
+                        ToolTip="{DynamicResource ToolTipFontColor}" />
 
                     <ui:Button
                         x:Name="OpacityIncrease"
@@ -165,7 +165,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon arrowAutofitUp20,
                                              Filled=False}"
-                        ToolTip="Background Opacity Increase" />
+                        ToolTip="{DynamicResource ToolTipOpacityIncrease}" />
                     <ui:Button
                         x:Name="OpacityDecrease"
                         Background="#FFAAAAAA"
@@ -173,7 +173,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon arrowAutofitDown20,
                                              Filled=False}"
-                        ToolTip="Background Opacity Decrease" />
+                        ToolTip="{DynamicResource ToolTipOpacityDecrease}" />
                     <ui:Button
                         x:Name="BackgroundColorCycle"
                         Background="#FFAAAAAA"
@@ -181,7 +181,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon color16,
                                              Filled=False}"
-                        ToolTip="Background Color" />
+                        ToolTip="{DynamicResource ToolTipBackgroundColor}" />
 
                     <ui:Button
                         x:Name="OnlyModeButton"
@@ -191,7 +191,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon PanelBottom20,
                                              Filled=False}"
-                        ToolTip="Show only subtitles or translations" />
+                        ToolTip="{DynamicResource ToolTipOnlyMode}" />
                     <ui:Button
                         x:Name="SwitchModeButton"
                         Background="#FFAAAAAA"
@@ -199,7 +199,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon ArrowSyncCircle20,
                                              Filled=False}"
-                        ToolTip="Switch the order of subtitles and translations" />
+                        ToolTip="{DynamicResource ToolTipSwitchMode}" />
                     <ui:Button
                         x:Name="ClickThrough"
                         Background="#FFAAAAAA"
@@ -207,7 +207,7 @@
                         Cursor="Hand"
                         Icon="{ui:SymbolIcon lockClosed16,
                                              Filled=False}"
-                        ToolTip="Click Through" />
+                        ToolTip="{DynamicResource ToolTipClickThrough}" />
                 </StackPanel>
             </Grid>
         </Border>

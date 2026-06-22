@@ -24,12 +24,33 @@ namespace LiveCaptionsTranslator
             {
                 (App.Current.MainWindow as MainWindow)?.AutoHeightAdjust(maxHeight: (int)App.Current.MainWindow.MinHeight);
                 CheckForFirstUse();
+                UpdateButtonText();
             };
 
             TranslateAPIBox.ItemsSource = Translator.Setting?.Configs.Keys;
             TranslateAPIBox.SelectedIndex = 0;
 
+            // UI言語セレクターの初期選択状態を設定します
+            string currentLang = Translator.Setting?.InterfaceLanguage ?? "ja";
+            foreach (ComboBoxItem item in UILanguageBox.Items)
+            {
+                if (item.Tag as string == currentLang)
+                {
+                    UILanguageBox.SelectedItem = item;
+                    break;
+                }
+            }
+
             LoadAPISetting();
+        }
+
+        private void UpdateButtonText()
+        {
+            if (Translator.Window != null && ButtonText != null)
+            {
+                bool isHide = Translator.Window.Current.BoundingRectangle == Rect.Empty;
+                ButtonText.Text = Application.Current.TryFindResource(isHide ? "ButtonHide" : "ButtonShow") as string ?? (isHide ? "Hide" : "Show");
+            }
         }
 
         private void LiveCaptionsButton_click(object sender, RoutedEventArgs e)
@@ -38,19 +59,17 @@ namespace LiveCaptionsTranslator
                 return;
 
             var button = sender as Wpf.Ui.Controls.Button;
-            var text = ButtonText.Text;
 
             bool isHide = Translator.Window.Current.BoundingRectangle == Rect.Empty;
             if (isHide)
             {
                 LiveCaptionsHandler.RestoreLiveCaptions(Translator.Window);
-                ButtonText.Text = "Hide";
             }
             else
             {
                 LiveCaptionsHandler.HideLiveCaptions(Translator.Window);
-                ButtonText.Text = "Show";
             }
+            UpdateButtonText();
         }
 
         private void TranslateAPIBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -178,7 +197,22 @@ namespace LiveCaptionsTranslator
         private void CheckForFirstUse()
         {
             if (Translator.FirstUseFlag)
-                ButtonText.Text = "Hide";
+                UpdateButtonText();
+        }
+
+        private void UILanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (UILanguageBox.SelectedItem is ComboBoxItem item && item.Tag is string lang)
+            {
+                if (Translator.Setting != null && Translator.Setting.InterfaceLanguage != lang)
+                {
+                    Translator.Setting.InterfaceLanguage = lang;
+                    LocalizationManager.SetLanguage(lang);
+                    
+                    // UIテキストを更新します
+                    UpdateButtonText();
+                }
+            }
         }
 
         public void LoadAPISetting()

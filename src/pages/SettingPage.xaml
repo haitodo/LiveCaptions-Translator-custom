@@ -22,17 +22,9 @@
         <StackPanel Grid.Column="0" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="LiveCaptions" />
+                    <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelLiveCaptions}" />
                     <ui:Flyout x:Name="LiveCaptionsInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run Text="After Windows 11 version 24H2, you can only change the" />
-                            <Run FontWeight="DemiBold" TextDecorations="Underline" Text="Source Language" />
-                            <Run Text="in LiveCaptions." />
-                            <Run FontWeight="Bold" Text="&#x0A;&#x0A;Note:" />
-                            <Run Text="Please click" />
-                            <Run FontWeight="Bold" Text="&quot;Hide&quot;" />
-                            <Run Text="to hide LiveCaptions instead of closing it directly." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource LiveCaptionsInfo}" />
                     </ui:Flyout>
                     <Button
                         x:Name="LiveCaptionsInfo"
@@ -53,20 +45,15 @@
                     Height="30"
                     Padding="11,4,11,4"
                     Click="LiveCaptionsButton_click">
-                    <TextBlock x:Name="ButtonText" Text="Show" />
+                    <TextBlock x:Name="ButtonText" Text="{DynamicResource ButtonShow}" />
                 </ui:Button>
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="API Interval" />
+                    <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelAPIInterval}" />
                     <ui:Flyout x:Name="FrequencyInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run Text="Determines the frequency of translate API calls. The smaller it is, the more frequent API calls." />
-                            <Run Text="&#x0A;The translate API is called once after the caption changes" />
-                            <Run FontWeight="SemiBold" Text="[API Interval]" />
-                            <Run Text="times." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource APIIntervalInfo}" />
                     </ui:Flyout>
                     <Button
                         x:Name="FrequencyInfo"
@@ -96,11 +83,11 @@
         <StackPanel Grid.Column="1" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="Translate API" />
+                    <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelTranslateAPI}" />
                     <ui:Flyout x:Name="TranslateAPIInfoFlyout">
                         <TextBlock
                             Width="300"
-                            Text="Except for Google and Google2, all other APIs require configuring before they can be used."
+                            Text="{DynamicResource TranslateAPIInfo}"
                             TextWrapping="Wrap" />
                     </ui:Flyout>
                     <Button
@@ -131,16 +118,9 @@
                     <TextBlock
                         Margin="2.5,0,0,5"
                         VerticalAlignment="Center"
-                        Text="Target Language" />
+                        Text="{DynamicResource LabelTargetLanguage}" />
                     <ui:Flyout x:Name="TargetLangInfoFlyout">
-                        <TextBlock Width="350" TextWrapping="Wrap">
-                            <Run FontWeight="DemiBold" TextDecorations="Underline" Text="&quot;There isn’t the target language I expect!&quot;" />
-                            <Run Text="&#x0A;You can directly edit the content of this combobox to customize the language, and it is recommended to follow the" />
-                            <Run FontWeight="Bold" Text="BCP 47 language tag." />
-                            <Run FontWeight="Bold" Text="&#x0A;&#x0A;Note:" />
-                            <Run Text="Some of APIs (such as DeepL) needs another way to define target language, see their official docs for more details." />
-                            <Run Text="&#x0A;No need to consider this for included target languages, since we've built in tag mappings. But if your expected language isn't in the list, keep this in mind." />
-                        </TextBlock>
+                        <TextBlock Width="350" TextWrapping="Wrap" Text="{DynamicResource TargetLanguageInfo}" />
                     </ui:Flyout>
                     <Button
                         x:Name="TargetLangInfo"
@@ -170,7 +150,7 @@
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="API Setting" />
+                    <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelAPISetting}" />
                 </StackPanel>
                 <ui:Button
                     x:Name="APISettingButton"
@@ -178,40 +158,40 @@
                     Height="30"
                     Padding="11,4,11,4"
                     Click="APISettingButton_click">
-                    <TextBlock Text="Open" />
+                    <TextBlock Text="{DynamicResource ButtonOpen}" />
                 </ui:Button>
             </StackPanel>
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Show Latency" />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelShowLatency}" />
                 <ui:ToggleSwitch
                     Width="100"
                     Height="30"
                     Padding="10,4,10,7"
                     IsChecked="{Binding MainWindow.LatencyShow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    OffContent="Off"
-                    OnContent="On" />
+                    OffContent="{DynamicResource Off}"
+                    OnContent="{DynamicResource On}" />
+            </StackPanel>
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelUILanguage}" />
+                <ComboBox
+                    x:Name="UILanguageBox"
+                    Width="100"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    SelectionChanged="UILanguageBox_SelectionChanged">
+                    <ComboBoxItem Content="日本語" Tag="ja" />
+                    <ComboBoxItem Content="English" Tag="en" />
+                </ComboBox>
             </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="3" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="Contexts" />
+                    <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelContexts}" />
                     <ui:Flyout x:Name="CaptionLogMaxInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run FontWeight="Bold" Text="Contexts:" />
-                            <Run Text="Determines the number of context sentences when" />
-                            <Run FontWeight="Bold" Text="Context Aware" />
-                            <Run Text="is enabled." />
-                            <Run FontWeight="Bold" Text="&#x0A;Overlay Sentences:" />
-                            <Run Text="Determines the number of displayed cards when" />
-                            <Run FontWeight="Bold" Text="Log Cards" />
-                            <Run Text="is enabled, as well as the max number of sentences displayed in the Overlay Window." />
-                            <Run FontWeight="Bold" Text="&#x0A;&#x0A;Note:" />
-                            <Run Text="Contexts must be" />
-                            <Run FontWeight="Bold" Text="greater than or equal" />
-                            <Run Text="Display Sentences. If not met, the program will automatically adjust them." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource ContextsInfo}" />
                     </ui:Flyout>
                     <Button
                         x:Name="CaptionLogMaxInfo"
@@ -243,7 +223,7 @@
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Display Sentences" />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelDisplaySentences}" />
                 <ui:NumberBox
                     Width="135"
                     Height="30"
@@ -263,15 +243,15 @@
 
         <StackPanel Grid.Column="4" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Context Aware" />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelContextAware}" />
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                     <ui:ToggleSwitch
                         Width="90"
                         Height="30"
                         Padding="10,4,10,7"
                         IsChecked="{Binding ContextAware, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        OffContent="Off"
-                        OnContent="On" />
+                        OffContent="{DynamicResource Off}"
+                        OnContent="{DynamicResource On}" />
                     <Button
                         x:Name="ContextAwareInfo"
                         Width="15"
@@ -285,16 +265,13 @@
                         <ui:SymbolIcon Symbol="Info16" />
                     </Button>
                     <ui:Flyout x:Name="ContextAwareInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run Text="Translate in context." />
-                            <Run Text="&#x0A;It can improve translation accuracy, but will consume more tokens." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource ContextAwareInfo}" />
                     </ui:Flyout>
                 </StackPanel>
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Auto Translate" />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelAutoTranslate}" />
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                     <ui:ToggleSwitch
                         x:Name="AutoTranslateSwitch"
@@ -302,8 +279,8 @@
                         Height="30"
                         Padding="10,4,10,7"
                         IsChecked="{Binding AutoTranslate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        OffContent="Off"
-                        OnContent="On" />
+                        OffContent="{DynamicResource Off}"
+                        OnContent="{DynamicResource On}" />
                     <Button
                         x:Name="AutoTranslateInfo"
                         Width="15"
@@ -317,16 +294,13 @@
                         <ui:SymbolIcon Symbol="Info16" />
                     </Button>
                     <ui:Flyout x:Name="AutoTranslateInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run Text="Automatically translate captions." />
-                            <Run Text="&#x0A;If turned off, translations only occur when clicking the manual Translate button." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource AutoTranslateInfo}" />
                     </ui:Flyout>
                 </StackPanel>
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Accumulate Trans." />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelAccumulateTrans}" />
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                     <ui:ToggleSwitch
                         x:Name="AccumulateEnabledSwitch"
@@ -335,8 +309,8 @@
                         Padding="10,4,10,7"
                         IsChecked="{Binding AccumulateEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding AutoTranslate, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                        OffContent="Off"
-                        OnContent="On" />
+                        OffContent="{DynamicResource Off}"
+                        OnContent="{DynamicResource On}" />
                     <Button
                         x:Name="AccumulateEnabledInfo"
                         Width="15"
@@ -350,16 +324,13 @@
                         <ui:SymbolIcon Symbol="Info16" />
                     </Button>
                     <ui:Flyout x:Name="AccumulateEnabledInfoFlyout">
-                        <TextBlock Width="300" TextWrapping="Wrap">
-                            <Run Text="Accumulate text before translating." />
-                            <Run Text="&#x0A;Wait to translate until the accumulated character count reaches the threshold, and a sentence boundary is detected." />
-                        </TextBlock>
+                        <TextBlock Width="300" TextWrapping="Wrap" Text="{DynamicResource AccumulateTransInfo}" />
                     </ui:Flyout>
                 </StackPanel>
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="Threshold (Chars)" />
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelThreshold}" />
                 <ui:NumberBox
                     Width="110"
                     Height="30"

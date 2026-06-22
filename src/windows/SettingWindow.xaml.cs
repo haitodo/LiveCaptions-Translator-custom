@@ -152,9 +152,11 @@ namespace LiveCaptionsTranslator
             {
                 string baseUrl = (Translator.Setting["LMStudio"] as LMStudioConfig)?.ApiUrl ?? "";
 
+                string title = Application.Current.TryFindResource("ButtonLoadModels") as string ?? "Load Models";
                 if (string.IsNullOrWhiteSpace(baseUrl))
                 {
-                    System.Windows.MessageBox.Show("Please set the API URL first.", "Load Models", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    string msg = Application.Current.TryFindResource("MsgSetApiUrlFirst") as string ?? "Please set the API URL first.";
+                    System.Windows.MessageBox.Show(msg, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                     return;
                 }
 
@@ -167,9 +169,15 @@ namespace LiveCaptionsTranslator
                     {
                         comboBox.ItemsSource = models;
                         if (models.Count > 0)
-                            System.Windows.MessageBox.Show($"Loaded {models.Count} model(s).", "Load Models", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                        {
+                            string msgTmpl = Application.Current.TryFindResource("MsgModelsLoaded") as string ?? "Loaded {0} model(s).";
+                            System.Windows.MessageBox.Show(string.Format(msgTmpl, models.Count), title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                        }
                         else
-                            System.Windows.MessageBox.Show("No models found or unable to connect. Check that the server is running.", "Load Models", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                        {
+                            string msg = Application.Current.TryFindResource("MsgNoModelsFound") as string ?? "No models found or unable to connect. Check that the server is running.";
+                            System.Windows.MessageBox.Show(msg, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                        }
                     }
                 }
                 finally

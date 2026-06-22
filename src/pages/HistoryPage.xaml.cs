@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -65,17 +65,22 @@ namespace LiveCaptionsTranslator
         {
             var dialogHostContainer = (Application.Current.MainWindow as MainWindow)?.DialogHostContainer;
 
+            string title = Application.Current.TryFindResource("DeleteHistoryTitle") as string ?? "Do you want to delete all history?";
+            string content = Application.Current.TryFindResource("DeleteHistoryContent") as string ?? "This operation cannot be undone!";
+            string yesText = Application.Current.TryFindResource("Yes") as string ?? "Yes";
+            string noText = Application.Current.TryFindResource("No") as string ?? "No";
+
             var dialog = new ContentDialog
             {
                 Title = new TextBlock
                 {
-                    Text = "Do you want to delete all history?",
+                    Text = title,
                     FontSize = 18,
                     FontWeight = FontWeights.Regular
                 },
-                Content = "This operation cannot be undone!",
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
+                Content = content,
+                PrimaryButtonText = yesText,
+                CloseButtonText = noText,
                 DefaultButton = ContentDialogButton.Close,
                 DialogHost = dialogHostContainer,
                 Padding = new Thickness(8, 4, 8, 8),
@@ -127,11 +132,15 @@ namespace LiveCaptionsTranslator
                 try
                 {
                     await SQLiteHistoryLogger.ExportToCSV(saveFileDialog.FileName);
-                    SnackbarHost.Show("Saved Success.", $"File saved to: {saveFileDialog.FileName}", SnackbarType.Success);
+                    string successTitle = Application.Current.TryFindResource("ExportSuccessTitle") as string ?? "Saved Success.";
+                    string successTmpl = Application.Current.TryFindResource("ExportSuccessContent") as string ?? "File saved to: {0}";
+                    SnackbarHost.Show(successTitle, string.Format(successTmpl, saveFileDialog.FileName), SnackbarType.Success);
                 }
                 catch (Exception ex)
                 {
-                    SnackbarHost.Show("Save Failed.", $"File saved faild:{ex.Message}", SnackbarType.Error);
+                    string failedTitle = Application.Current.TryFindResource("ExportFailedTitle") as string ?? "Save Failed.";
+                    string failedTmpl = Application.Current.TryFindResource("ExportFailedContent") as string ?? "File save failed: {0}";
+                    SnackbarHost.Show(failedTitle, string.Format(failedTmpl, ex.Message), SnackbarType.Error);
                 }
             }
         }

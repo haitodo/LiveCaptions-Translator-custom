@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using Wpf.Ui.Appearance;
@@ -180,7 +180,8 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("[ERROR] Update Check Failed.", ex.Message, SnackbarType.Error,
+                string errMsg = Application.Current.TryFindResource("UpdateCheckFailed") as string ?? "[ERROR] Update Check Failed.";
+                SnackbarHost.Show(errMsg, ex.Message, SnackbarType.Error,
                     timeout: 2, closeButton: true);
 
                 return;
@@ -192,14 +193,18 @@ namespace LiveCaptionsTranslator
                 return;
             if (!string.IsNullOrEmpty(latestVersion) && latestVersion != currentVersion)
             {
+                string title = Application.Current.TryFindResource("UpdateTitle") as string ?? "New Version Available";
+                string contentTmpl = Application.Current.TryFindResource("UpdateContent") as string ?? "A new version has been detected: {0}\nCurrent version: {1}\nPlease visit GitHub to download the latest release.";
+                string content = string.Format(contentTmpl, latestVersion, currentVersion);
+                string btnUpdate = Application.Current.TryFindResource("ButtonUpdate") as string ?? "Update";
+                string btnIgnore = Application.Current.TryFindResource("ButtonIgnoreVersion") as string ?? "Ignore this version";
+
                 var dialog = new Wpf.Ui.Controls.MessageBox
                 {
-                    Title = "New Version Available",
-                    Content = $"A new version has been detected: {latestVersion}\n" +
-                              $"Current version: {currentVersion}\n" +
-                              $"Please visit GitHub to download the latest release.",
-                    PrimaryButtonText = "Update",
-                    CloseButtonText = "Ignore this version"
+                    Title = title,
+                    Content = content,
+                    PrimaryButtonText = btnUpdate,
+                    CloseButtonText = btnIgnore
                 };
                 var result = await dialog.ShowDialogAsync();
 
@@ -216,7 +221,8 @@ namespace LiveCaptionsTranslator
                     }
                     catch (Exception ex)
                     {
-                        SnackbarHost.Show("[ERROR] Open Browser Failed.", ex.Message, SnackbarType.Error,
+                        string errMsg = Application.Current.TryFindResource("OpenBrowserFailed") as string ?? "[ERROR] Open Browser Failed.";
+                        SnackbarHost.Show(errMsg, ex.Message, SnackbarType.Error,
                             timeout: 2, closeButton: true);
                     }
                 }
