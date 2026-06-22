@@ -38,6 +38,8 @@ namespace LiveCaptionsTranslator
 
             ToggleTopmost(Translator.Setting.MainWindow.Topmost);
             ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
+            UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
+            UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
         }
 
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
@@ -218,6 +220,52 @@ namespace LiveCaptionsTranslator
                 else
                     icon.Symbol = SymbolRegular.HistoryDismiss24;
                 CaptionPage.Instance?.CollapseTranslatedCaption(enabled);
+            }
+        }
+
+        private void ShowOriginalButton_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.Setting.MainWindow.ShowOriginalCaption = !Translator.Setting.MainWindow.ShowOriginalCaption;
+            UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
+        }
+
+        public void UpdateShowOriginalButton(bool enabled)
+        {
+            if (ShowOriginalButton.Icon is SymbolIcon icon)
+            {
+                if (enabled)
+                {
+                    icon.Symbol = SymbolRegular.Eye24;
+                    icon.Filled = true;
+                }
+                else
+                {
+                    icon.Symbol = SymbolRegular.EyeOff24;
+                    icon.Filled = false;
+                }
+            }
+        }
+
+        private void AutoScrollButton_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.Setting.MainWindow.AutoScrollEnabled = !Translator.Setting.MainWindow.AutoScrollEnabled;
+            UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
+        }
+
+        public void UpdateAutoScrollButton(bool enabled)
+        {
+            if (AutoScrollButton.Icon is SymbolIcon icon)
+            {
+                if (enabled)
+                {
+                    icon.Symbol = SymbolRegular.ArrowDown24;
+                    icon.Filled = true;
+                }
+                else
+                {
+                    icon.Symbol = SymbolRegular.ArrowDown24;
+                    icon.Filled = false;
+                }
             }
         }
 

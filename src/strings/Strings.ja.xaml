@@ -19,6 +19,8 @@
     <sys:String x:Key="ToolTipOverlayWindow">オーバーレイウィンドウ</sys:String>
     <sys:String x:Key="ToolTipAlwaysOnTop">常に最前面</sys:String>
     <sys:String x:Key="ToolTipLogCards">字幕ログカード</sys:String>
+    <sys:String x:Key="ToolTipShowOriginal">原文の表示/非表示</sys:String>
+    <sys:String x:Key="ToolTipAutoScroll">自動スクロールのオン/オフ</sys:String>
     <sys:String x:Key="NavCaption">字幕</sys:String>
     <sys:String x:Key="NavSetting">設定</sys:String>
     <sys:String x:Key="NavHistory">履歴</sys:String>
@@ -68,6 +70,7 @@
     <sys:String x:Key="LabelAPISetting">API 設定</sys:String>
     <sys:String x:Key="ButtonOpen">開く</sys:String>
     <sys:String x:Key="LabelShowLatency">レイテンシ表示</sys:String>
+    <sys:String x:Key="LabelShowOriginal">原文表示</sys:String>
     <sys:String x:Key="LabelContexts">コンテキスト数</sys:String>
     <sys:String x:Key="ContextsInfo">コンテキスト数:&#x0A;コンテキスト認識（Context Aware）が有効な場合に、コンテキストとして使用する文章の数を決定します。&#x0A;&#x0A;オーバーレイ表示数:&#x0A;字幕ログカードが有効な場合に表示するカードの数、およびオーバーレイウィンドウに表示する最大文章数を決定します。&#x0A;&#x0A;注意:&#x0A;コンテキスト数は表示文数以上である必要があります。満たさない場合、プログラムは自動的に調整します。</sys:String>
     <sys:String x:Key="LabelDisplaySentences">表示文数</sys:String>

@@ -172,6 +172,16 @@
                     OnContent="{DynamicResource On}" />
             </StackPanel>
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelShowOriginal}" />
+                <ui:ToggleSwitch
+                    Width="100"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    IsChecked="{Binding MainWindow.ShowOriginalCaption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    OffContent="{DynamicResource Off}"
+                    OnContent="{DynamicResource On}" />
+            </StackPanel>
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
                 <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelUILanguage}" />
                 <ComboBox
                     x:Name="UILanguageBox"

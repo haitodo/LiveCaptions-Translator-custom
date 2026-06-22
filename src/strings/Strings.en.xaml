@@ -19,6 +19,8 @@
     <sys:String x:Key="ToolTipOverlayWindow">Overlay Window</sys:String>
     <sys:String x:Key="ToolTipAlwaysOnTop">Always on Top</sys:String>
     <sys:String x:Key="ToolTipLogCards">Log Cards of Captions</sys:String>
+    <sys:String x:Key="ToolTipShowOriginal">Show/Hide Original Text</sys:String>
+    <sys:String x:Key="ToolTipAutoScroll">Toggle Auto Scroll</sys:String>
     <sys:String x:Key="NavCaption">Caption</sys:String>
     <sys:String x:Key="NavSetting">Setting</sys:String>
     <sys:String x:Key="NavHistory">History</sys:String>
@@ -68,6 +70,7 @@
     <sys:String x:Key="LabelAPISetting">API Setting</sys:String>
     <sys:String x:Key="ButtonOpen">Open</sys:String>
     <sys:String x:Key="LabelShowLatency">Show Latency</sys:String>
+    <sys:String x:Key="LabelShowOriginal">Show Original</sys:String>
     <sys:String x:Key="LabelContexts">Contexts</sys:String>
     <sys:String x:Key="ContextsInfo">Contexts:&#x0A;Determines the number of context sentences when Context Aware is enabled.&#x0A;&#x0A;Overlay Sentences:&#x0A;Determines the number of displayed cards when Log Cards is enabled, as well as the max number of sentences displayed in the Overlay Window.&#x0A;&#x0A;Note:&#x0A;Contexts must be greater than or equal to Display Sentences. If not met, the program will automatically adjust them.</sys:String>
     <sys:String x:Key="LabelDisplaySentences">Display Sentences</sys:String>

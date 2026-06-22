@@ -11,6 +11,8 @@ namespace LiveCaptionsTranslator.models
         private bool topmost = true;
         private bool captionLogEnabled = false;
         private bool latencyShow = false;
+        private bool showOriginalCaption = false;
+        private bool autoScrollEnabled = true;
 
         public bool Topmost
         {
@@ -28,6 +30,24 @@ namespace LiveCaptionsTranslator.models
             {
                 captionLogEnabled = value;
                 OnPropertyChanged("CaptionLogEnabled");
+            }
+        }
+        public bool ShowOriginalCaption
+        {
+            get => showOriginalCaption;
+            set
+            {
+                showOriginalCaption = value;
+                OnPropertyChanged("ShowOriginalCaption");
+            }
+        }
+        public bool AutoScrollEnabled
+        {
+            get => autoScrollEnabled;
+            set
+            {
+                autoScrollEnabled = value;
+                OnPropertyChanged("AutoScrollEnabled");
             }
         }
         public bool LatencyShow

@@ -25,31 +25,68 @@ namespace LiveCaptionsTranslator
             Loaded += (s, e) =>
             {
                 AutoHeight();
-                (App.Current.MainWindow as MainWindow).CaptionLogButton.Visibility = Visibility.Visible;
+                var mainWindow = App.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.CaptionLogButton.Visibility = Visibility.Visible;
+                    mainWindow.ShowOriginalButton.Visibility = Visibility.Visible;
+                    mainWindow.AutoScrollButton.Visibility = Visibility.Visible;
+                    ScrollViewer.SetVerticalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Disabled);
+                    ScrollViewer.SetHorizontalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Disabled);
+                }
                 Translator.Caption.PropertyChanged += TranslatedChanged;
 
-                if (App.Current.MainWindow is MainWindow mainWindow)
+                if (Translator.Setting != null)
                 {
-                    mainWindow.PreviewKeyDown += MainWindow_PreviewKeyDown;
+                    Translator.Setting.PropertyChanged += SettingChanged;
+                    if (Translator.Setting.MainWindow != null)
+                    {
+                        Translator.Setting.MainWindow.PropertyChanged += MainWindowSettingChanged;
+                    }
                 }
+
+                if (App.Current.MainWindow is MainWindow mw)
+                {
+                    mw.PreviewKeyDown += MainWindow_PreviewKeyDown;
+                }
+
+                UpdateOriginalCaptionVisibility();
 
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    LogCardsScrollViewer.ScrollToEnd();
+                    CaptionPageScrollViewer.ScrollToEnd();
                 }), DispatcherPriority.Background);
             };
             Unloaded += (s, e) =>
             {
-                (App.Current.MainWindow as MainWindow).CaptionLogButton.Visibility = Visibility.Collapsed;
+                var mainWindow = App.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.CaptionLogButton.Visibility = Visibility.Collapsed;
+                    mainWindow.ShowOriginalButton.Visibility = Visibility.Collapsed;
+                    mainWindow.AutoScrollButton.Visibility = Visibility.Collapsed;
+                    ScrollViewer.SetVerticalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Auto);
+                    ScrollViewer.SetHorizontalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Auto);
+                }
                 Translator.Caption.PropertyChanged -= TranslatedChanged;
 
-                if (App.Current.MainWindow is MainWindow mainWindow)
+                if (Translator.Setting != null)
                 {
-                    mainWindow.PreviewKeyDown -= MainWindow_PreviewKeyDown;
+                    Translator.Setting.PropertyChanged -= SettingChanged;
+                    if (Translator.Setting.MainWindow != null)
+                    {
+                        Translator.Setting.MainWindow.PropertyChanged -= MainWindowSettingChanged;
+                    }
+                }
+
+                if (App.Current.MainWindow is MainWindow mw)
+                {
+                    mw.PreviewKeyDown -= MainWindow_PreviewKeyDown;
                 }
             };
 
             CollapseTranslatedCaption(Translator.Setting.MainWindow.CaptionLogEnabled);
+            UpdateOriginalCaptionVisibility();
         }
 
         private async void TextBlock_MouseLeftButtonDown(object sender, RoutedEventArgs e)
@@ -89,17 +126,42 @@ namespace LiveCaptionsTranslator
                 }
             }
 
-            if (e.PropertyName == nameof(Translator.Caption.DisplayLogCards))
+            if (e.PropertyName == nameof(Translator.Caption.DisplayLogCards) ||
+                e.PropertyName == nameof(Translator.Caption.DisplayTranslatedCaption) ||
+                e.PropertyName == nameof(Translator.Caption.DisplayOriginalCaption))
             {
-                bool shouldScroll = LogCardsScrollViewer.VerticalOffset >= LogCardsScrollViewer.ScrollableHeight - 10;
-                Dispatcher.BeginInvoke(new Action(() =>
+                if (Translator.Setting.MainWindow.AutoScrollEnabled)
                 {
-                    if (shouldScroll)
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        LogCardsScrollViewer.ScrollToEnd();
-                    }
-                }), DispatcherPriority.Background);
+                        CaptionPageScrollViewer.ScrollToEnd();
+                    }), DispatcherPriority.Background);
+                }
             }
+        }
+
+        private void SettingChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Translator.Setting.AutoTranslate))
+            {
+                Dispatcher.BeginInvoke(new Action(() => UpdateOriginalCaptionVisibility()), DispatcherPriority.Background);
+            }
+        }
+
+        private void MainWindowSettingChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Translator.Setting.MainWindow.ShowOriginalCaption))
+            {
+                Dispatcher.BeginInvoke(new Action(() => UpdateOriginalCaptionVisibility()), DispatcherPriority.Background);
+            }
+        }
+
+        private void UpdateOriginalCaptionVisibility()
+        {
+            if (OriginalCaptionCard == null) return;
+
+            bool showOriginal = Translator.Setting.MainWindow.ShowOriginalCaption || !Translator.Setting.AutoTranslate;
+            OriginalCaptionCard.Visibility = showOriginal ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void CollapseTranslatedCaption(bool isCollapsed)
@@ -108,11 +170,13 @@ namespace LiveCaptionsTranslator
 
             if (isCollapsed)
             {
+                CaptionLogCard_Row.Height = (GridLength)converter.ConvertFromString("*");
                 TranslatedCaption_Row.Height = (GridLength)converter.ConvertFromString("Auto");
                 LogCards.Visibility = Visibility.Visible;
             }
             else
             {
+                CaptionLogCard_Row.Height = (GridLength)converter.ConvertFromString("0");
                 TranslatedCaption_Row.Height = (GridLength)converter.ConvertFromString("*");
                 LogCards.Visibility = Visibility.Collapsed;
             }
@@ -154,6 +218,14 @@ namespace LiveCaptionsTranslator
             {
                 Translator.TriggerManualTranslation();
                 e.Handled = true;
+            }
+        }
+
+        private void CaptionPageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (Translator.Setting.MainWindow.AutoScrollEnabled && e.ExtentHeightChange > 0)
+            {
+                CaptionPageScrollViewer.ScrollToEnd();
             }
         }
     }

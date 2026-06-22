@@ -39,6 +39,24 @@
                 <ui:TitleBar.TrailingContent>
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <ui:Button
+                            x:Name="AutoScrollButton"
+                            Margin="0,0,5,0"
+                            Appearance="Transparent"
+                            Click="AutoScrollButton_Click"
+                            Icon="{ui:SymbolIcon ArrowDown16,
+                                                 Filled=False}"
+                            ToolTip="{DynamicResource ToolTipAutoScroll}"
+                            Visibility="Collapsed" />
+                        <ui:Button
+                            x:Name="ShowOriginalButton"
+                            Margin="0,0,5,0"
+                            Appearance="Transparent"
+                            Click="ShowOriginalButton_Click"
+                            Icon="{ui:SymbolIcon Eye16,
+                                                 Filled=False}"
+                            ToolTip="{DynamicResource ToolTipShowOriginal}"
+                            Visibility="Collapsed" />
+                        <ui:Button
                             x:Name="CaptionLogButton"
                             Margin="0,0,5,0"
                             Appearance="Transparent"
