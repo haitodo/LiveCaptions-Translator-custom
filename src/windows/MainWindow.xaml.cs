@@ -33,14 +33,9 @@ namespace LiveCaptionsTranslator
             double screenHeight = SystemParameters.PrimaryScreenHeight;
 
             var windowState = WindowHandler.LoadState(this, Translator.Setting);
-            if (windowState.Left <= 0 || windowState.Left >= screenWidth ||
-                windowState.Top <= 0 || windowState.Top >= screenHeight)
-            {
-                WindowHandler.RestoreState(this, new Rect(
-                    (screenWidth - 775) / 2, screenHeight * 3 / 4 - 167, 775, 167));
-            }
-            else
-                WindowHandler.RestoreState(this, windowState);
+            var defaultBounds = new Rect((screenWidth - 775) / 2, screenHeight * 3 / 4 - 167, 775, 167);
+            var validatedState = WindowHandler.ValidateAndAdjustBounds(windowState, defaultBounds);
+            WindowHandler.RestoreState(this, validatedState);
 
             ToggleTopmost(Translator.Setting.MainWindow.Topmost);
             ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
@@ -71,14 +66,9 @@ namespace LiveCaptionsTranslator
                 double screenHeight = SystemParameters.PrimaryScreenHeight;
 
                 var windowState = WindowHandler.LoadState(OverlayWindow, Translator.Setting);
-                if (windowState.Left <= 0 || windowState.Left >= screenWidth ||
-                    windowState.Top <= 0 || windowState.Top >= screenHeight)
-                {
-                    WindowHandler.RestoreState(OverlayWindow, new Rect(
-                        (screenWidth - 650) / 2, screenHeight * 5 / 6 - 135, 650, 135));
-                }
-                else
-                    WindowHandler.RestoreState(OverlayWindow, windowState);
+                var defaultBounds = new Rect((screenWidth - 650) / 2, screenHeight * 5 / 6 - 135, 650, 135);
+                var validatedState = WindowHandler.ValidateAndAdjustBounds(windowState, defaultBounds);
+                WindowHandler.RestoreState(OverlayWindow, validatedState);
 
                 OverlayWindow.Show();
             }
