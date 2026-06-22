@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -8,7 +8,7 @@ namespace LiveCaptionsTranslator.models
 {
     public class Caption : INotifyPropertyChanged
     {
-        public const int MAX_CONTEXTS = 10;
+        public const int MAX_CONTEXTS = 100;
 
         private static Caption? instance = null;
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -22,13 +22,13 @@ namespace LiveCaptionsTranslator.models
         public string OriginalCaption { get; set; } = string.Empty;
         public string TranslatedCaption { get; set; } = string.Empty;
 
-        public Queue<TranslationHistoryEntry> Contexts { get; } = new(MAX_CONTEXTS);
+        public List<TranslationHistoryEntry> Contexts { get; } = new(MAX_CONTEXTS);
 
         public IEnumerable<TranslationHistoryEntry> AwareContexts => GetPreviousContexts(Translator.Setting.NumContexts);
         public string AwareContextsCaption => GetPreviousText(Translator.Setting.NumContexts, TextType.Caption);
 
         public IEnumerable<TranslationHistoryEntry> DisplayLogCards =>
-            GetPreviousContexts(Translator.Setting.DisplaySentences).Reverse();
+            GetPreviousContexts(MAX_CONTEXTS);
 
         public string DisplayOriginalCaption
         {
@@ -80,6 +80,9 @@ namespace LiveCaptionsTranslator.models
         public string OverlayPreviousTranslation =>
             GetPreviousText(Translator.Setting.DisplaySentences, TextType.Translation);
 
+        public string OverlayPreviousOriginal =>
+            GetPreviousText(Translator.Setting.DisplaySentences, TextType.Caption);
+
         private Caption()
         {
         }
@@ -94,11 +97,12 @@ namespace LiveCaptionsTranslator.models
 
         public string GetPreviousText(int count, TextType textType)
         {
-            if (count <= 0 || Contexts.Count == 0)
+            if (count <= 0 || Contexts.Count <= 1)
                 return string.Empty;
 
             var prev = Contexts
-                .Reverse().Take(count).Reverse()
+                .SkipLast(1)
+                .Skip(Math.Max(0, Contexts.Count - 1 - count))
                 .Select(entry => entry == null || string.CompareOrdinal(entry.TranslatedText, "N/A") == 0 ||
                                  entry.TranslatedText.Contains("[ERROR]") || entry.TranslatedText.Contains("[WARNING]") ?
                     "" : (textType == TextType.Caption ? entry.SourceText : entry.TranslatedText))
@@ -126,11 +130,12 @@ namespace LiveCaptionsTranslator.models
 
         public IEnumerable<TranslationHistoryEntry> GetPreviousContexts(int count)
         {
-            if (count <= 0 || Contexts.Count == 0)
+            if (count <= 0 || Contexts.Count <= 1)
                 return [];
 
             return Contexts
-                .Reverse().Take(count).Reverse()
+                .SkipLast(1)
+                .Skip(Math.Max(0, Contexts.Count - 1 - count))
                 .Where(entry => entry != null && string.CompareOrdinal(entry.TranslatedText, "N/A") != 0 &&
                                 !entry.TranslatedText.Contains("[ERROR]") &&
                                 !entry.TranslatedText.Contains("[WARNING]"));

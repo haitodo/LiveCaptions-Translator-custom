@@ -86,10 +86,7 @@ namespace LiveCaptionsTranslator
                 // Replace redundant `\n` within sentences with comma or period.
                 fullText = TextUtil.ReplaceNewlines(fullText, TextUtil.MEDIUM_THRESHOLD);
 
-                // Prevent adding the last sentence from previous running to log cards
-                // before the first sentence is completed.
-                if (fullText.IndexOfAny(TextUtil.PUNC_EOS) == -1 && Caption.Contexts.Count > 0)
-                    ClearContexts();
+
 
                 // Get the last sentence.
                 int lastEOSIndex;
@@ -398,12 +395,36 @@ namespace LiveCaptionsTranslator
             if (lastLog == null)
                 return;
 
-            if (Caption?.Contexts.Count >= Caption.MAX_CONTEXTS)
-                Caption.Contexts.Dequeue();
-            Caption?.Contexts.Enqueue(lastLog);
+            if (Caption != null)
+            {
+                if (Caption.Contexts.Count >= Caption.MAX_CONTEXTS)
+                    Caption.Contexts.RemoveAt(0);
+                Caption.Contexts.Add(lastLog);
+            }
 
             Caption?.OnPropertyChanged("DisplayLogCards");
             Caption?.OnPropertyChanged("OverlayPreviousTranslation");
+            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
+        }
+
+        public static async Task UpdateLastContext(CancellationToken token = default)
+        {
+            var lastLog = await SQLiteHistoryLogger.LoadLastTranslation(token);
+            if (lastLog == null)
+                return;
+
+            if (Caption != null && Caption.Contexts.Count > 0)
+            {
+                Caption.Contexts[Caption.Contexts.Count - 1] = lastLog;
+            }
+            else
+            {
+                Caption?.Contexts.Add(lastLog);
+            }
+
+            Caption?.OnPropertyChanged("DisplayLogCards");
+            Caption?.OnPropertyChanged("OverlayPreviousTranslation");
+            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
         }
 
         public static void ClearContexts()
@@ -412,6 +433,7 @@ namespace LiveCaptionsTranslator
 
             Caption?.OnPropertyChanged("DisplayLogCards");
             Caption?.OnPropertyChanged("OverlayPreviousTranslation");
+            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
         }
 
         // If this text is too similar to the last one, overwrite it when logging.

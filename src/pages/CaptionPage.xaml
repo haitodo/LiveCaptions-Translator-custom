@@ -10,11 +10,11 @@
     JournalEntry.KeepAlive="True"
     mc:Ignorable="d">
 
-    <Grid Margin="5,5,15,5">
+    <Grid Margin="12,12,12,12">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="OriginalCaption_Row" Height="Auto" />
             <RowDefinition x:Name="TranslatedCaption_Row" Height="Auto" />
-            <RowDefinition x:Name="CaptionLogCard_Row" Height="Auto" />
+            <RowDefinition x:Name="CaptionLogCard_Row" Height="*" />
         </Grid.RowDefinitions>
         <Grid.Resources>
             <Style x:Key="CaptionBlockStyle" TargetType="TextBlock">
@@ -25,6 +25,7 @@
 
         <ui:Card
             Grid.Row="0"
+            Margin="0,0,0,6"
             Padding="8"
             VerticalAlignment="Stretch">
             <Grid>
@@ -57,7 +58,7 @@
         <ui:Card
             Grid.Row="1"
             MinHeight="43"
-            Margin="0,3,0,0"
+            Margin="0,0,0,8"
             Padding="8"
             VerticalAlignment="Stretch">
             <TextBlock
@@ -74,63 +75,55 @@
         <ui:Card
             x:Name="LogCards"
             Grid.Row="2"
-            Margin="0,0,0,5"
+            Margin="0,0,0,0"
             Padding="8"
-            VerticalAlignment="Top"
+            VerticalAlignment="Stretch"
             Background="Transparent"
             BorderBrush="#00000000">
-            <ItemsControl
-                x:Name="LogCardItems"
-                MinHeight="50"
-                ItemsSource="{Binding DisplayLogCards, UpdateSourceTrigger=PropertyChanged}"
-                VirtualizingPanel.IsVirtualizing="True">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border
-                            Margin="0,0,0,5"
-                            Padding="10,5,10,5"
-                            BorderBrush="#20000000"
-                            BorderThickness="0,1,0,0">
-                            <Grid Grid.Row="0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-
-                                <ui:Card
-                                    Grid.Row="0"
-                                    Padding="8"
-                                    VerticalAlignment="Stretch">
+            <ScrollViewer x:Name="LogCardsScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl
+                    x:Name="LogCardItems"
+                    MinHeight="50"
+                    ItemsSource="{Binding DisplayLogCards, UpdateSourceTrigger=PropertyChanged}"
+                    VirtualizingPanel.IsVirtualizing="True">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Margin="0,0,0,8"
+                                Padding="12,10,12,10"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                CornerRadius="6">
+                                <StackPanel Orientation="Vertical">
                                     <TextBlock
                                         x:Name="OriginalCaptionLog"
                                         Background="Transparent"
                                         Cursor="Hand"
-                                        FontSize="12"
+                                        FontSize="12.5"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                                         Style="{StaticResource CaptionBlockStyle}"
                                         Text="{Binding SourceText}"
                                         ToolTip="{DynamicResource ToolTipClickToCopy}" />
-                                </ui:Card>
-                                <ui:Card
-                                    Grid.Row="1"
-                                    Margin="0,3,0,0"
-                                    Padding="8"
-                                    VerticalAlignment="Stretch">
                                     <TextBlock
                                         x:Name="TranslatedCaptionLog"
+                                        Margin="0,4,0,0"
                                         Background="Transparent"
                                         Cursor="Hand"
-                                        FontSize="16"
+                                        FontSize="15.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                                         Style="{StaticResource CaptionBlockStyle}"
                                         Text="{Binding TranslatedText}"
                                         ToolTip="{DynamicResource ToolTipClickToCopy}" />
-                                </ui:Card>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </ui:Card>
 
     </Grid>

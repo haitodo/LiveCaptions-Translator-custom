@@ -29,19 +29,6 @@ namespace LiveCaptionsTranslator
             {ColorEnum.Red, Brushes.Red},
             {ColorEnum.Black, Brushes.Black},
         };
-        private CaptionVisible onlyMode = CaptionVisible.Both;
-
-        public CaptionVisible OnlyMode
-        {
-            get => onlyMode;
-            set
-            {
-                onlyMode = value;
-                ResizeForOnlyMode();
-            }
-        }
-        public CaptionLocation SwitchMode { get; set; } = CaptionLocation.TranslationTop;
-
         public OverlayWindow()
         {
             InitializeComponent();
@@ -50,15 +37,11 @@ namespace LiveCaptionsTranslator
             Loaded += (s, e) => Translator.Caption.PropertyChanged += TranslatedChanged;
             Unloaded += (s, e) => Translator.Caption.PropertyChanged -= TranslatedChanged;
 
-            OriginalCaption.FontWeight = Translator.Setting.OverlayWindow.FontBold == Utils.FontBold.Both ?
-                FontWeights.Bold : FontWeights.Regular;
             TranslatedCaption.FontWeight = Translator.Setting.OverlayWindow.FontBold >= Utils.FontBold.TranslationOnly ?
                 FontWeights.Bold : FontWeights.Regular;
 
-            OriginalCaptionDecorator.StrokeThickness = Translator.Setting.OverlayWindow.FontStroke;
             TranslatedCaptionDecorator.StrokeThickness = Translator.Setting.OverlayWindow.FontStroke;
 
-            OriginalCaption.Foreground = colorMap[Translator.Setting.OverlayWindow.FontColor];
             UpdateTranslationColor(colorMap[Translator.Setting.OverlayWindow.FontColor]);
 
             BorderBackground.Background = colorMap[Translator.Setting.OverlayWindow.BackgroundColor];
@@ -143,6 +126,19 @@ namespace LiveCaptionsTranslator
         private void TranslatedChanged(object sender, PropertyChangedEventArgs e)
         {
             ApplyFontSize();
+
+            if (e.PropertyName == nameof(Translator.Caption.OverlayCurrentTranslation) ||
+                e.PropertyName == nameof(Translator.Caption.OverlayPreviousTranslation))
+            {
+                bool shouldScroll = TranslatedScrollViewer.VerticalOffset >= TranslatedScrollViewer.ScrollableHeight - 10;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (shouldScroll)
+                    {
+                        TranslatedScrollViewer.ScrollToEnd();
+                    }
+                }), DispatcherPriority.Background);
+            }
         }
 
         private void Window_MouseEnter(object sender, MouseEventArgs e)
@@ -181,19 +177,11 @@ namespace LiveCaptionsTranslator
             switch (Translator.Setting.OverlayWindow.FontBold)
             {
                 case Utils.FontBold.None:
-                    OriginalCaption.FontWeight = FontWeights.Regular;
+                case Utils.FontBold.SubtitleOnly:
                     TranslatedCaption.FontWeight = FontWeights.Regular;
                     break;
                 case Utils.FontBold.TranslationOnly:
-                    OriginalCaption.FontWeight = FontWeights.Regular;
-                    TranslatedCaption.FontWeight = FontWeights.Bold;
-                    break;
-                case Utils.FontBold.SubtitleOnly:
-                    OriginalCaption.FontWeight = FontWeights.Bold;
-                    TranslatedCaption.FontWeight = FontWeights.Regular;
-                    break;
                 case Utils.FontBold.Both:
-                    OriginalCaption.FontWeight = FontWeights.Bold;
                     TranslatedCaption.FontWeight = FontWeights.Bold;
                     break;
             }
@@ -220,7 +208,6 @@ namespace LiveCaptionsTranslator
             Translator.Setting.OverlayWindow.FontColor++;
             if (Translator.Setting.OverlayWindow.FontColor > ColorEnum.Black)
                 Translator.Setting.OverlayWindow.FontColor = ColorEnum.White;
-            OriginalCaption.Foreground = colorMap[Translator.Setting.OverlayWindow.FontColor];
             TranslatedCaption.Foreground = colorMap[Translator.Setting.OverlayWindow.FontColor];
             UpdateTranslationColor(colorMap[Translator.Setting.OverlayWindow.FontColor]);
         }
@@ -254,47 +241,6 @@ namespace LiveCaptionsTranslator
             ApplyBackgroundOpacity();
         }
 
-        private void OnlyModeButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var symbolIcon = button?.Icon as SymbolIcon;
-
-            if (onlyMode == CaptionVisible.SubtitleOnly)
-            {
-                // (0) Subtitle + Translation
-                symbolIcon.Symbol = SymbolRegular.PanelBottom20;
-                OnlyMode = CaptionVisible.Both;
-            }
-            else if (onlyMode == CaptionVisible.Both)
-            {
-                // (1) Translation Only
-                symbolIcon.Symbol = SymbolRegular.PanelTopExpand20;
-                OnlyMode = CaptionVisible.TranslationOnly;
-            }
-            else
-            {
-                // (2) Subtitle Only
-                symbolIcon.Symbol = SymbolRegular.PanelTopContract20;
-                OnlyMode = CaptionVisible.SubtitleOnly;
-            }
-        }
-
-        private void SwitchModeButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (SwitchMode == CaptionLocation.TranslationTop)
-            {
-                Grid.SetRow(TranslatedCaptionCard, 1);
-                Grid.SetRow(OriginalCaptionCard, 0);
-                SwitchMode = CaptionLocation.SubtitleTop;
-            }
-            else
-            {
-                Grid.SetRow(TranslatedCaptionCard, 0);
-                Grid.SetRow(OriginalCaptionCard, 1);
-                SwitchMode = CaptionLocation.TranslationTop;
-            }
-        }
-
         private void ClickThrough_Click(object sender, RoutedEventArgs e)
         {
             var hwnd = new WindowInteropHelper(this).Handle;
@@ -303,50 +249,16 @@ namespace LiveCaptionsTranslator
             ControlPanel.Visibility = Visibility.Collapsed;
         }
 
-        public void ResizeForOnlyMode()
-        {
-            if (onlyMode == CaptionVisible.TranslationOnly)
-            {
-                // (1) Translation Only
-                OriginalCaptionCard.Visibility = Visibility.Collapsed;
-                this.MinHeight -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Top += StyleConsts.DELTA_OVERLAY_HEIGHT;
-            }
-            if (onlyMode == CaptionVisible.SubtitleOnly)
-            {
-                // restore
-                OriginalCaptionCard.Visibility = Visibility.Visible;
-                this.Top -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height += StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.MinHeight += StyleConsts.DELTA_OVERLAY_HEIGHT;
-
-                // (2) Subtitle Only
-                TranslatedCaptionCard.Visibility = Visibility.Collapsed;
-                this.MinHeight -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-            }
-            else if (onlyMode == CaptionVisible.Both)
-            {
-                // restore
-                TranslatedCaptionCard.Visibility = Visibility.Visible;
-                this.Height += StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.MinHeight += StyleConsts.DELTA_OVERLAY_HEIGHT;
-            }
-        }
-
         public void ApplyFontSize()
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                OriginalCaption.FontSize = Translator.Setting.OverlayWindow.FontSize;
-                TranslatedCaption.FontSize = (int)(OriginalCaption.FontSize * 1.25);
+                TranslatedCaption.FontSize = (int)(Translator.Setting.OverlayWindow.FontSize * 1.25);
             }), DispatcherPriority.Background);
         }
 
         public void ApplyFontStroke()
         {
-            OriginalCaptionDecorator.StrokeThickness = Translator.Setting.OverlayWindow.FontStroke;
             TranslatedCaptionDecorator.StrokeThickness = Translator.Setting.OverlayWindow.FontStroke;
         }
 
@@ -366,9 +278,9 @@ namespace LiveCaptionsTranslator
             byte g = (byte)Math.Clamp(color.G + (target - color.G) * 0.4, 0, 255);
             byte b = (byte)Math.Clamp(color.B + (target - color.B) * 0.3, 0, 255);
 
-            NoticePrefixRun.Foreground = brush;
-            PreviousTranslationRun.Foreground = brush;
-            CurrentTranslationRun.Foreground = new SolidColorBrush(Color.FromRgb(r, g, b));
+            if (NoticePrefixRun != null) NoticePrefixRun.Foreground = brush;
+            if (PreviousTranslationRun != null) PreviousTranslationRun.Foreground = brush;
+            if (CurrentTranslationRun != null) CurrentTranslationRun.Foreground = new SolidColorBrush(Color.FromRgb(r, g, b));
         }
 
         private void ManualTranslate_Click(object sender, RoutedEventArgs e)

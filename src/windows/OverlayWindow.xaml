@@ -39,10 +39,6 @@
             CornerRadius="8"
             MouseLeftButtonDown="Border_MouseLeftButtonDown">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
                 <Grid.Resources>
                     <Style x:Key="CaptionBlockStyle" TargetType="TextBlock">
                         <Setter Property="TextWrapping" Value="Wrap" />
@@ -52,50 +48,30 @@
 
                 <ui:Card
                     x:Name="TranslatedCaptionCard"
-                    Grid.Row="0"
                     Margin="5,2,5,2"
                     Padding="8"
-                    VerticalAlignment="Top"
+                    VerticalAlignment="Stretch"
                     Background="Transparent"
                     BorderThickness="0">
-                    <local:StrokeDecorator
-                        x:Name="TranslatedCaptionDecorator"
-                        Stroke="Black"
-                        StrokeThickness="0">
-                        <TextBlock
-                            x:Name="TranslatedCaption"
-                            FontSize="18"
-                            Style="{StaticResource CaptionBlockStyle}">
-                            <Run x:Name="NoticePrefixRun" Text="{Binding OverlayNoticePrefix, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                            <Run x:Name="PreviousTranslationRun" Text="{Binding OverlayPreviousTranslation, Mode=OneWay}" />
-                            <Run x:Name="CurrentTranslationRun" Text="{Binding OverlayCurrentTranslation, UpdateSourceTrigger=PropertyChanged}" />
-                        </TextBlock>
-                    </local:StrokeDecorator>
-                </ui:Card>
-                <ui:Card
-                    x:Name="OriginalCaptionCard"
-                    Grid.Row="1"
-                    Margin="5,2,5,2"
-                    Padding="8"
-                    VerticalAlignment="Top"
-                    Background="Transparent"
-                    BorderThickness="0">
-                    <local:StrokeDecorator
-                        x:Name="OriginalCaptionDecorator"
-                        Stroke="Black"
-                        StrokeThickness="0">
-                        <TextBlock
-                            x:Name="OriginalCaption"
-                            FontSize="15"
-                            Style="{StaticResource CaptionBlockStyle}"
-                            Text="{Binding OverlayOriginalCaption, UpdateSourceTrigger=PropertyChanged}">
-                        </TextBlock>
-                    </local:StrokeDecorator>
+                    <ScrollViewer x:Name="TranslatedScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <local:StrokeDecorator
+                            x:Name="TranslatedCaptionDecorator"
+                            Stroke="Black"
+                            StrokeThickness="0">
+                            <TextBlock
+                                x:Name="TranslatedCaption"
+                                FontSize="18"
+                                Style="{StaticResource CaptionBlockStyle}">
+                                <Run x:Name="NoticePrefixRun" Text="{Binding OverlayNoticePrefix, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                                <Run x:Name="PreviousTranslationRun" Text="{Binding OverlayPreviousTranslation, Mode=OneWay}" />
+                                <Run x:Name="CurrentTranslationRun" Text="{Binding OverlayCurrentTranslation, UpdateSourceTrigger=PropertyChanged}" />
+                            </TextBlock>
+                        </local:StrokeDecorator>
+                    </ScrollViewer>
                 </ui:Card>
 
                 <StackPanel
                     x:Name="ControlPanel"
-                    Grid.Row="1"
                     Margin="0,0,5,5"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
@@ -183,23 +159,7 @@
                                              Filled=False}"
                         ToolTip="{DynamicResource ToolTipBackgroundColor}" />
 
-                    <ui:Button
-                        x:Name="OnlyModeButton"
-                        Margin="5,0,0,0"
-                        Background="#FFAAAAAA"
-                        Click="OnlyModeButton_Click"
-                        Cursor="Hand"
-                        Icon="{ui:SymbolIcon PanelBottom20,
-                                             Filled=False}"
-                        ToolTip="{DynamicResource ToolTipOnlyMode}" />
-                    <ui:Button
-                        x:Name="SwitchModeButton"
-                        Background="#FFAAAAAA"
-                        Click="SwitchModeButton_Click"
-                        Cursor="Hand"
-                        Icon="{ui:SymbolIcon ArrowSyncCircle20,
-                                             Filled=False}"
-                        ToolTip="{DynamicResource ToolTipSwitchMode}" />
+
                     <ui:Button
                         x:Name="ClickThrough"
                         Background="#FFAAAAAA"

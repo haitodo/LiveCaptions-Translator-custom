@@ -32,6 +32,11 @@ namespace LiveCaptionsTranslator
                 {
                     mainWindow.PreviewKeyDown += MainWindow_PreviewKeyDown;
                 }
+
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    LogCardsScrollViewer.ScrollToEnd();
+                }), DispatcherPriority.Background);
             };
             Unloaded += (s, e) =>
             {
@@ -83,6 +88,18 @@ namespace LiveCaptionsTranslator
                     }), DispatcherPriority.Background);
                 }
             }
+
+            if (e.PropertyName == nameof(Translator.Caption.DisplayLogCards))
+            {
+                bool shouldScroll = LogCardsScrollViewer.VerticalOffset >= LogCardsScrollViewer.ScrollableHeight - 10;
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (shouldScroll)
+                    {
+                        LogCardsScrollViewer.ScrollToEnd();
+                    }
+                }), DispatcherPriority.Background);
+            }
         }
 
         public void CollapseTranslatedCaption(bool isCollapsed)
@@ -103,14 +120,25 @@ namespace LiveCaptionsTranslator
 
         public void AutoHeight()
         {
+            var mainWindow = App.Current.MainWindow as MainWindow;
+            if (mainWindow == null) return;
+
             if (Translator.Setting.MainWindow.CaptionLogEnabled)
-                (App.Current.MainWindow as MainWindow).AutoHeightAdjust(
-                    minHeight: CARD_HEIGHT * (Translator.Setting.DisplaySentences + 1),
-                    maxHeight: CARD_HEIGHT * (Translator.Setting.DisplaySentences + 1));
+            {
+                if (mainWindow.Height <= 170)
+                {
+                    mainWindow.Height = 400;
+                }
+                mainWindow.AutoHeightAdjust(
+                    minHeight: 170,
+                    maxHeight: -1);
+            }
             else
-                (App.Current.MainWindow as MainWindow).AutoHeightAdjust(
-                    minHeight: (int)App.Current.MainWindow.MinHeight,
-                    maxHeight: (int)App.Current.MainWindow.MinHeight);
+            {
+                mainWindow.AutoHeightAdjust(
+                    minHeight: 170,
+                    maxHeight: 170);
+            }
         }
 
         private void ManualTranslateButton_Click(object sender, RoutedEventArgs e)

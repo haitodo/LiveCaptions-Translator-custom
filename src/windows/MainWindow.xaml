@@ -78,7 +78,6 @@
             <ui:NavigationView
                 x:Name="RootNavigation"
                 Grid.Row="1"
-                Height="Auto"
                 HeaderVisibility="Collapsed"
                 IsBackButtonVisible="Collapsed"
                 IsPaneOpen="False"

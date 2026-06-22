@@ -1,4 +1,4 @@
-﻿namespace LiveCaptionsTranslator.models
+namespace LiveCaptionsTranslator.models
 {
     public class TranslationTaskQueue
     {
@@ -42,11 +42,13 @@
             output = translationTask.Task.Result;
             var translatedText = output.Item1;
 
-            // Log after translation.
+            // Log and update contexts.
             bool isOverwrite = await Translator.IsOverwrite(translationTask.OriginalText);
+            await Translator.Log(translationTask.OriginalText, translatedText, isOverwrite);
             if (!isOverwrite)
                 await Translator.AddContexts();
-            await Translator.Log(translationTask.OriginalText, translatedText, isOverwrite);
+            else
+                await Translator.UpdateLastContext();
         }
     }
 

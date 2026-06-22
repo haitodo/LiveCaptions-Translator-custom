@@ -76,17 +76,6 @@ namespace LiveCaptionsTranslator
                 symbolIcon.Symbol = SymbolRegular.ClosedCaptionOff24;
                 symbolIcon.Filled = false;
 
-                switch (OverlayWindow.OnlyMode)
-                {
-                    case CaptionVisible.TranslationOnly:
-                        OverlayWindow.OnlyMode = CaptionVisible.SubtitleOnly;
-                        OverlayWindow.OnlyMode = CaptionVisible.Both;
-                        break;
-                    case CaptionVisible.SubtitleOnly:
-                        OverlayWindow.OnlyMode = CaptionVisible.Both;
-                        break;
-                }
-
                 OverlayWindow.Close();
                 OverlayWindow = null;
             }
