@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="LiveCaptionsTranslator.SettingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -291,6 +291,89 @@
                         </TextBlock>
                     </ui:Flyout>
                 </StackPanel>
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="Auto Translate" />
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <ui:ToggleSwitch
+                        x:Name="AutoTranslateSwitch"
+                        Width="90"
+                        Height="30"
+                        Padding="10,4,10,7"
+                        IsChecked="{Binding AutoTranslate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        OffContent="Off"
+                        OnContent="On" />
+                    <Button
+                        x:Name="AutoTranslateInfo"
+                        Width="15"
+                        Height="15"
+                        Margin="-5,-3,0,0"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        MouseEnter="AutoTranslateInfo_MouseEnter"
+                        MouseLeave="AutoTranslateInfo_MouseLeave">
+                        <ui:SymbolIcon Symbol="Info16" />
+                    </Button>
+                    <ui:Flyout x:Name="AutoTranslateInfoFlyout">
+                        <TextBlock Width="300" TextWrapping="Wrap">
+                            <Run Text="Automatically translate captions." />
+                            <Run Text="&#x0A;If turned off, translations only occur when clicking the manual Translate button." />
+                        </TextBlock>
+                    </ui:Flyout>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="Accumulate Trans." />
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <ui:ToggleSwitch
+                        x:Name="AccumulateEnabledSwitch"
+                        Width="90"
+                        Height="30"
+                        Padding="10,4,10,7"
+                        IsChecked="{Binding AccumulateEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        IsEnabled="{Binding AutoTranslate, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                        OffContent="Off"
+                        OnContent="On" />
+                    <Button
+                        x:Name="AccumulateEnabledInfo"
+                        Width="15"
+                        Height="15"
+                        Margin="-5,-3,0,0"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        MouseEnter="AccumulateEnabledInfo_MouseEnter"
+                        MouseLeave="AccumulateEnabledInfo_MouseLeave">
+                        <ui:SymbolIcon Symbol="Info16" />
+                    </Button>
+                    <ui:Flyout x:Name="AccumulateEnabledInfoFlyout">
+                        <TextBlock Width="300" TextWrapping="Wrap">
+                            <Run Text="Accumulate text before translating." />
+                            <Run Text="&#x0A;Wait to translate until the accumulated character count reaches the threshold, and a sentence boundary is detected." />
+                        </TextBlock>
+                    </ui:Flyout>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="Threshold (Chars)" />
+                <ui:NumberBox
+                    Width="110"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="500"
+                    Minimum="10"
+                    LargeChange="10"
+                    SmallChange="5"
+                    Value="{Binding AccumulateThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    IsEnabled="{Binding IsAccumulateThresholdEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
         </StackPanel>
     </Grid>

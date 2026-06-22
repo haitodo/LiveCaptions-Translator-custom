@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows.Automation;
@@ -17,6 +17,9 @@ namespace LiveCaptionsTranslator
 
         private static readonly Queue<string> pendingTextQueue = new();
         private static readonly TranslationTaskQueue translationTaskQueue = new();
+
+        private static string accumulatedOriginalText = string.Empty;
+        private static readonly object accumulateLock = new object();
 
         public static AutomationElement? Window
         {
@@ -104,23 +107,58 @@ namespace LiveCaptionsTranslator
                     latestCaption = fullText.Substring(lastEOSIndex + 1);
                 }
 
-                // `OverlayOriginalCaption`: The sentence to be displayed on Overlay Window.
-                Caption.OverlayOriginalCaption = latestCaption;
-                for (int historyCount = Math.Min(Setting.DisplaySentences, Caption.Contexts.Count);
-                     historyCount > 0 && lastEOSIndex > 0;
-                     historyCount--)
+                // 自動翻訳が有効かつ文字数蓄積が無効な場合（デフォルトの挙動）
+                if (Setting.AutoTranslate && !Setting.AccumulateEnabled)
                 {
-                    lastEOSIndex = fullText[0..lastEOSIndex].LastIndexOfAny(TextUtil.PUNC_EOS);
-                    Caption.OverlayOriginalCaption = fullText.Substring(lastEOSIndex + 1);
-                }
+                    // `OverlayOriginalCaption`: The sentence to be displayed on Overlay Window.
+                    Caption.OverlayOriginalCaption = latestCaption;
+                    for (int historyCount = Math.Min(Setting.DisplaySentences, Caption.Contexts.Count);
+                         historyCount > 0 && lastEOSIndex > 0;
+                         historyCount--)
+                    {
+                        lastEOSIndex = fullText[0..lastEOSIndex].LastIndexOfAny(TextUtil.PUNC_EOS);
+                        Caption.OverlayOriginalCaption = fullText.Substring(lastEOSIndex + 1);
+                    }
 
-                // `DisplayOriginalCaption`: The sentence to be displayed on Main Window.
-                if (string.CompareOrdinal(Caption.DisplayOriginalCaption, latestCaption) != 0)
+                    // `DisplayOriginalCaption`: The sentence to be displayed on Main Window.
+                    if (string.CompareOrdinal(Caption.DisplayOriginalCaption, latestCaption) != 0)
+                    {
+                        Caption.DisplayOriginalCaption = latestCaption;
+                        // If the last sentence is too long, truncate it when displayed.
+                        Caption.DisplayOriginalCaption =
+                            TextUtil.ShortenDisplaySentence(Caption.DisplayOriginalCaption, TextUtil.VERYLONG_THRESHOLD);
+                    }
+                }
+                else
                 {
-                    Caption.DisplayOriginalCaption = latestCaption;
-                    // If the last sentence is too long, truncate it when displayed.
-                    Caption.DisplayOriginalCaption =
-                        TextUtil.ShortenDisplaySentence(Caption.DisplayOriginalCaption, TextUtil.VERYLONG_THRESHOLD);
+                    // 手動翻訳または文字数蓄積が有効な場合
+                    string currentAccumulated = string.Empty;
+                    lock (accumulateLock)
+                    {
+                        currentAccumulated = accumulatedOriginalText;
+                    }
+
+                    string combinedOriginal = currentAccumulated;
+                    if (string.IsNullOrEmpty(combinedOriginal))
+                        combinedOriginal = latestCaption;
+                    else
+                    {
+                        bool prevIsCJ = TextUtil.isCJChar(combinedOriginal[^1]);
+                        bool curIsCJ = TextUtil.isCJChar(latestCaption[0]);
+                        if (!prevIsCJ && !curIsCJ)
+                            combinedOriginal += " " + latestCaption.TrimStart();
+                        else
+                            combinedOriginal += latestCaption.TrimStart();
+                    }
+
+                    Caption.OverlayOriginalCaption = combinedOriginal;
+
+                    if (string.CompareOrdinal(Caption.DisplayOriginalCaption, combinedOriginal) != 0)
+                    {
+                        Caption.DisplayOriginalCaption = combinedOriginal;
+                        Caption.DisplayOriginalCaption =
+                            TextUtil.ShortenDisplaySentence(Caption.DisplayOriginalCaption, TextUtil.VERYLONG_THRESHOLD);
+                    }
                 }
 
                 // Prepare for `OriginalCaption`. If Expanded, only retain the complete sentence.
@@ -136,7 +174,38 @@ namespace LiveCaptionsTranslator
                     if (Array.IndexOf(TextUtil.PUNC_EOS, Caption.OriginalCaption[^1]) != -1)
                     {
                         syncCount = 0;
-                        pendingTextQueue.Enqueue(Caption.OriginalCaption);
+                        AppendToAccumulatedText(Caption.OriginalCaption);
+
+                        if (Setting.AutoTranslate)
+                        {
+                            bool shouldTranslate = !Setting.AccumulateEnabled;
+                            if (Setting.AccumulateEnabled)
+                            {
+                                int length = 0;
+                                lock (accumulateLock)
+                                {
+                                    length = accumulatedOriginalText.Length;
+                                }
+                                if (length >= Setting.AccumulateThreshold)
+                                {
+                                    shouldTranslate = true;
+                                }
+                            }
+
+                            if (shouldTranslate)
+                            {
+                                string textToEnqueue = string.Empty;
+                                lock (accumulateLock)
+                                {
+                                    textToEnqueue = accumulatedOriginalText;
+                                    accumulatedOriginalText = string.Empty;
+                                }
+                                if (!string.IsNullOrEmpty(textToEnqueue))
+                                {
+                                    pendingTextQueue.Enqueue(textToEnqueue);
+                                }
+                            }
+                        }
                     }
                     else if (Encoding.UTF8.GetByteCount(Caption.OriginalCaption) >= TextUtil.SHORT_THRESHOLD)
                         syncCount++;
@@ -150,7 +219,10 @@ namespace LiveCaptionsTranslator
                     idleCount == Setting.MaxIdleInterval)
                 {
                     syncCount = 0;
-                    pendingTextQueue.Enqueue(Caption.OriginalCaption);
+                    if (Setting.AutoTranslate && !Setting.AccumulateEnabled)
+                    {
+                        pendingTextQueue.Enqueue(Caption.OriginalCaption);
+                    }
                 }
 
                 Thread.Sleep(25);
@@ -355,6 +427,58 @@ namespace LiveCaptionsTranslator
 
             double similarity = TextUtil.Similarity(originalText, lastOriginalText);
             return similarity > TextUtil.SIM_THRESHOLD;
+        }
+
+        // 確定した文を蓄積用バッファに追加します
+        private static void AppendToAccumulatedText(string sentence)
+        {
+            lock (accumulateLock)
+            {
+                if (string.IsNullOrEmpty(accumulatedOriginalText))
+                {
+                    accumulatedOriginalText = sentence;
+                }
+                else
+                {
+                    bool prevIsCJ = TextUtil.isCJChar(accumulatedOriginalText[^1]);
+                    bool curIsCJ = TextUtil.isCJChar(sentence[0]);
+                    if (!prevIsCJ && !curIsCJ)
+                        accumulatedOriginalText += " " + sentence.TrimStart();
+                    else
+                        accumulatedOriginalText += sentence.TrimStart();
+                }
+            }
+        }
+
+        // 手動で翻訳をトリガーします
+        public static void TriggerManualTranslation()
+        {
+            string textToTranslate = string.Empty;
+            lock (accumulateLock)
+            {
+                textToTranslate = accumulatedOriginalText;
+                if (!string.IsNullOrEmpty(Caption.OriginalCaption))
+                {
+                    if (string.IsNullOrEmpty(textToTranslate))
+                        textToTranslate = Caption.OriginalCaption;
+                    else
+                    {
+                        bool prevIsCJ = TextUtil.isCJChar(textToTranslate[^1]);
+                        bool curIsCJ = TextUtil.isCJChar(Caption.OriginalCaption[0]);
+                        if (!prevIsCJ && !curIsCJ)
+                            textToTranslate += " " + Caption.OriginalCaption.TrimStart();
+                        else
+                            textToTranslate += Caption.OriginalCaption.TrimStart();
+                    }
+                }
+                // 翻訳キューに投入するため、蓄積バッファをクリアします
+                accumulatedOriginalText = string.Empty;
+            }
+
+            if (!string.IsNullOrEmpty(textToTranslate))
+            {
+                pendingTextQueue.Enqueue(textToTranslate);
+            }
         }
     }
 }

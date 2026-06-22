@@ -1,7 +1,8 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 using LiveCaptionsTranslator.utils;
@@ -26,11 +27,21 @@ namespace LiveCaptionsTranslator
                 AutoHeight();
                 (App.Current.MainWindow as MainWindow).CaptionLogButton.Visibility = Visibility.Visible;
                 Translator.Caption.PropertyChanged += TranslatedChanged;
+
+                if (App.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.PreviewKeyDown += MainWindow_PreviewKeyDown;
+                }
             };
             Unloaded += (s, e) =>
             {
                 (App.Current.MainWindow as MainWindow).CaptionLogButton.Visibility = Visibility.Collapsed;
                 Translator.Caption.PropertyChanged -= TranslatedChanged;
+
+                if (App.Current.MainWindow is MainWindow mainWindow)
+                {
+                    mainWindow.PreviewKeyDown -= MainWindow_PreviewKeyDown;
+                }
             };
 
             CollapseTranslatedCaption(Translator.Setting.MainWindow.CaptionLogEnabled);
@@ -100,6 +111,22 @@ namespace LiveCaptionsTranslator
                 (App.Current.MainWindow as MainWindow).AutoHeightAdjust(
                     minHeight: (int)App.Current.MainWindow.MinHeight,
                     maxHeight: (int)App.Current.MainWindow.MinHeight);
+        }
+
+        private void ManualTranslateButton_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.TriggerManualTranslation();
+        }
+
+        private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.T &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
+                (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                Translator.TriggerManualTranslation();
+                e.Handled = true;
+            }
         }
     }
 }

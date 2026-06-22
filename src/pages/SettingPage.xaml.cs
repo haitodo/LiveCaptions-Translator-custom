@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -153,6 +153,26 @@ namespace LiveCaptionsTranslator
         private void ContextAwareInfo_MouseLeave(object sender, MouseEventArgs e)
         {
             ContextAwareInfoFlyout.Hide();
+        }
+
+        private void AutoTranslateInfo_MouseEnter(object sender, MouseEventArgs e)
+        {
+            AutoTranslateInfoFlyout.Show();
+        }
+
+        private void AutoTranslateInfo_MouseLeave(object sender, MouseEventArgs e)
+        {
+            AutoTranslateInfoFlyout.Hide();
+        }
+
+        private void AccumulateEnabledInfo_MouseEnter(object sender, MouseEventArgs e)
+        {
+            AccumulateEnabledInfoFlyout.Show();
+        }
+
+        private void AccumulateEnabledInfo_MouseLeave(object sender, MouseEventArgs e)
+        {
+            AccumulateEnabledInfoFlyout.Hide();
         }
 
         private void CheckForFirstUse()

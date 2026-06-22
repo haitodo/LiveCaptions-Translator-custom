@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -369,6 +369,11 @@ namespace LiveCaptionsTranslator
             NoticePrefixRun.Foreground = brush;
             PreviousTranslationRun.Foreground = brush;
             CurrentTranslationRun.Foreground = new SolidColorBrush(Color.FromRgb(r, g, b));
+        }
+
+        private void ManualTranslate_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.TriggerManualTranslation();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="LiveCaptionsTranslator.OverlayWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -100,6 +100,14 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal">
+                    <ui:Button
+                        x:Name="ManualTranslate"
+                        Background="#FFAAAAAA"
+                        Click="ManualTranslate_Click"
+                        Cursor="Hand"
+                        Icon="{ui:SymbolIcon Translate24,
+                                             Filled=False}"
+                        ToolTip="Translate Now" />
                     <ui:Button
                         x:Name="FontSizeIncrease"
                         Background="#FFAAAAAA"

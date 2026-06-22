@@ -20,6 +20,9 @@ namespace LiveCaptionsTranslator.models
         private int numContexts = 2;
         private int displaySentences = 1;
         private bool contextAware = false;
+        private bool autoTranslate = true;
+        private bool accumulateEnabled = false;
+        private int accumulateThreshold = 50;
 
         private string apiName;
         private string targetLanguage;
@@ -70,6 +73,41 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("ContextAware");
             }
         }
+
+        public bool AutoTranslate
+        {
+            get => autoTranslate;
+            set
+            {
+                autoTranslate = value;
+                OnPropertyChanged("AutoTranslate");
+                OnPropertyChanged("IsAccumulateThresholdEnabled");
+            }
+        }
+
+        public bool AccumulateEnabled
+        {
+            get => accumulateEnabled;
+            set
+            {
+                accumulateEnabled = value;
+                OnPropertyChanged("AccumulateEnabled");
+                OnPropertyChanged("IsAccumulateThresholdEnabled");
+            }
+        }
+
+        public int AccumulateThreshold
+        {
+            get => accumulateThreshold;
+            set
+            {
+                accumulateThreshold = value;
+                OnPropertyChanged("AccumulateThreshold");
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsAccumulateThresholdEnabled => autoTranslate && accumulateEnabled;
 
         public string ApiName
         {
