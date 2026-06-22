@@ -12,7 +12,7 @@ namespace LiveCaptionsTranslator.utils
     {
         public static Rect SaveState(Window? window, Setting? setting)
         {
-            if (window == null || setting == null)
+            if (window == null || setting == null || !window.IsLoaded)
                 return Rect.Empty;
             string windowName = window.GetType().Name;
             setting.WindowBounds[windowName] = Regex.Replace(

@@ -24,7 +24,6 @@ namespace LiveCaptionsTranslator
             {
                 SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
                 RootNavigation.Navigate(typeof(CaptionPage));
-                IsAutoHeight = true;
                 CheckForFirstUse();
                 CheckForUpdates();
             };
