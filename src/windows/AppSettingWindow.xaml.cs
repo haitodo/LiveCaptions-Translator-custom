@@ -1,44 +1,83 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 
 using LiveCaptionsTranslator.models;
 using LiveCaptionsTranslator.utils;
-using Wpf.Ui.Controls;
+using LiveCaptionsTranslator.Utils;
+using Button = System.Windows.Controls.Button;
+using ComboBox = System.Windows.Controls.ComboBox;
+using TextBlock = System.Windows.Controls.TextBlock;
 
 namespace LiveCaptionsTranslator
 {
-    public partial class SettingPage : Page
+    public partial class AppSettingWindow : FluentWindow
     {
-        private static SettingWindow? SettingWindow;
+        private System.Windows.Controls.Button currentSelected;
+        private Dictionary<string, FrameworkElement> sectionReferences;
+        private static SettingWindow? apiSettingWindow;
 
-        public SettingPage()
+        public AppSettingWindow()
         {
             InitializeComponent();
             ApplicationThemeManager.ApplySystemTheme();
             DataContext = Translator.Setting;
 
-            Loaded += (s, e) =>
+            Loaded += (sender, args) =>
             {
-                var mainWindow = App.Current.MainWindow as MainWindow;
-                if (mainWindow != null && mainWindow.IsAutoHeight)
-                {
-                    mainWindow.AutoHeightAdjust(maxHeight: (int)mainWindow.MinHeight);
-                }
+                SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
+                InitializeSections();
+                SelectButton(GeneralNavButton);
+                
                 CheckForFirstUse();
                 UpdateButtonText();
             };
 
-            TranslateAPIBox.ItemsSource = Translator.Setting?.Configs.Keys;
-            TranslateAPIBox.SelectedIndex = 0;
-
-
+            if (Translator.Setting != null)
+            {
+                TranslateAPIBox.ItemsSource = Translator.Setting.Configs.Keys;
+                TranslateAPIBox.SelectedItem = Translator.Setting.ApiName;
+            }
 
             LoadAPISetting();
             PopulateCaptionFontColors();
             PopulateCaptionFontFamilies();
+        }
+
+        private void InitializeSections()
+        {
+            sectionReferences = new Dictionary<string, FrameworkElement>
+            {
+                { "General", GeneralSection },
+                { "Translation", TranslationSection },
+                { "Display", DisplaySection }
+            };
+        }
+
+        private void NavigationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button)
+            {
+                SelectButton(button);
+                string targetSection = button.Tag.ToString();
+                if (sectionReferences.TryGetValue(targetSection, out FrameworkElement element))
+                    element.BringIntoView();
+            }
+        }
+
+        private void SelectButton(System.Windows.Controls.Button button)
+        {
+            if (currentSelected != null)
+                currentSelected.Background = new SolidColorBrush(Colors.Transparent);
+            button.Background = (Brush)FindResource("ControlFillColorSecondaryBrush");
+            currentSelected = button;
         }
 
         private void UpdateButtonText()
@@ -50,12 +89,10 @@ namespace LiveCaptionsTranslator
             }
         }
 
-        private void LiveCaptionsButton_click(object sender, RoutedEventArgs e)
+        private void LiveCaptionsButton_Click(object sender, RoutedEventArgs e)
         {
             if (Translator.Window == null)
                 return;
-
-            var button = sender as Wpf.Ui.Controls.Button;
 
             bool isHide = Translator.Window.Current.BoundingRectangle == Rect.Empty;
             if (isHide)
@@ -77,136 +114,53 @@ namespace LiveCaptionsTranslator
 
         private void TargetLangBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (TargetLangBox.SelectedItem != null)
+            if (TargetLangBox.SelectedItem != null && Translator.Setting != null)
                 Translator.Setting.TargetLanguage = TargetLangBox.SelectedItem.ToString();
         }
 
         private void TargetLangBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            Translator.Setting.TargetLanguage = TargetLangBox.Text;
+            if (Translator.Setting != null)
+                Translator.Setting.TargetLanguage = TargetLangBox.Text;
         }
 
-        private void APISettingButton_click(object sender, RoutedEventArgs e)
+        private void APISettingButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SettingWindow != null && SettingWindow.IsLoaded)
-                SettingWindow.Activate();
+            if (apiSettingWindow != null && apiSettingWindow.IsLoaded)
+                apiSettingWindow.Activate();
             else
             {
-                SettingWindow = new SettingWindow();
-                SettingWindow.Closed += (sender, args) => SettingWindow = null;
-                SettingWindow.Show();
+                apiSettingWindow = new SettingWindow();
+                apiSettingWindow.Closed += (s, args) => apiSettingWindow = null;
+                apiSettingWindow.Show();
             }
         }
 
         private void Contexts_ValueChanged(object sender, NumberBoxValueChangedEventArgs args)
         {
+            if (Translator.Setting == null) return;
             if (Translator.Setting.DisplaySentences > Translator.Setting.NumContexts)
                 Translator.Setting.DisplaySentences = Translator.Setting.NumContexts;
         }
 
         private void DisplaySentences_ValueChanged(object sender, NumberBoxValueChangedEventArgs args)
         {
+            if (Translator.Setting == null) return;
             if (Translator.Setting.DisplaySentences > Translator.Setting.NumContexts)
                 Translator.Setting.NumContexts = Translator.Setting.DisplaySentences;
-            Translator.Caption.OnPropertyChanged("DisplayLogCards");
-            Translator.Caption.OnPropertyChanged("OverlayPreviousTranslation");
+            Translator.Caption?.OnPropertyChanged("DisplayLogCards");
+            Translator.Caption?.OnPropertyChanged("OverlayPreviousTranslation");
         }
-
-        private void LiveCaptionsInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            LiveCaptionsInfoFlyout.Show();
-        }
-
-        private void LiveCaptionsInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            LiveCaptionsInfoFlyout.Hide();
-        }
-
-        private void FrequencyInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            FrequencyInfoFlyout.Show();
-        }
-
-        private void FrequencyInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            FrequencyInfoFlyout.Hide();
-        }
-
-        private void TranslateAPIInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            TranslateAPIInfoFlyout.Show();
-        }
-
-        private void TranslateAPIInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            TranslateAPIInfoFlyout.Hide();
-        }
-
-        private void TargetLangInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            TargetLangInfoFlyout.Show();
-        }
-
-        private void TargetLangInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            TargetLangInfoFlyout.Hide();
-        }
-
-        private void CaptionLogMaxInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            CaptionLogMaxInfoFlyout.Show();
-        }
-
-        private void CaptionLogMaxInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            CaptionLogMaxInfoFlyout.Hide();
-        }
-
-        private void ContextAwareInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            ContextAwareInfoFlyout.Show();
-        }
-
-        private void ContextAwareInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            ContextAwareInfoFlyout.Hide();
-        }
-
-        private void AutoTranslateInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            AutoTranslateInfoFlyout.Show();
-        }
-
-        private void AutoTranslateInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            AutoTranslateInfoFlyout.Hide();
-        }
-
-        private void AccumulateEnabledInfo_MouseEnter(object sender, MouseEventArgs e)
-        {
-            AccumulateEnabledInfoFlyout.Show();
-        }
-
-        private void AccumulateEnabledInfo_MouseLeave(object sender, MouseEventArgs e)
-        {
-            AccumulateEnabledInfoFlyout.Hide();
-        }
-
-        private void CheckForFirstUse()
-        {
-            if (Translator.FirstUseFlag)
-                UpdateButtonText();
-        }
-
-
 
         public void LoadAPISetting()
         {
+            if (Translator.Setting == null) return;
+
             var configType = Translator.Setting[Translator.Setting.ApiName].GetType();
             var languagesProp = configType.GetProperty(
                 "SupportedLanguages", BindingFlags.Public | BindingFlags.Static);
 
-            // Traverse base classes to find `SupportedLanguages`
+            // 基底クラスを遡って SupportedLanguages を探索
             while (configType != null && languagesProp == null)
             {
                 configType = configType.BaseType;
@@ -222,7 +176,8 @@ namespace LiveCaptionsTranslator
 
             string targetLang = Translator.Setting.TargetLanguage;
             if (!supportedLanguages.ContainsKey(targetLang))
-                supportedLanguages[targetLang] = targetLang;    // add custom language to supported languages
+                supportedLanguages[targetLang] = targetLang;    // カスタム言語をサポート言語に追加
+
             TargetLangBox.SelectedItem = targetLang;
         }
 
@@ -319,6 +274,12 @@ namespace LiveCaptionsTranslator
                     Translator.Setting.MainWindow.CaptionFontFamily = fontName;
                 }
             }
+        }
+
+        private void CheckForFirstUse()
+        {
+            if (Translator.FirstUseFlag)
+                UpdateButtonText();
         }
     }
 }

@@ -16,6 +16,7 @@ namespace LiveCaptionsTranslator
     {
         public OverlayWindow? OverlayWindow { get; set; } = null;
         public bool IsAutoHeight { get; set; } = true;
+        private static AppSettingWindow? _appSettingWindow;
 
         public MainWindow()
         {
@@ -168,7 +169,7 @@ namespace LiveCaptionsTranslator
             if (!Translator.FirstUseFlag)
                 return;
 
-            RootNavigation.Navigate(typeof(SettingPage));
+            OpenAppSettingWindow();
             LiveCaptionsHandler.RestoreLiveCaptions(Translator.Window);
 
             Dispatcher.InvokeAsync(() =>
@@ -179,6 +180,29 @@ namespace LiveCaptionsTranslator
                 };
                 welcomeWindow.Show();
             }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void NavSettingItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is NavigationViewItem item)
+            {
+                item.IsActive = false;
+            }
+            OpenAppSettingWindow();
+        }
+
+        public static void OpenAppSettingWindow()
+        {
+            if (_appSettingWindow != null && _appSettingWindow.IsLoaded)
+            {
+                _appSettingWindow.Activate();
+            }
+            else
+            {
+                _appSettingWindow = new AppSettingWindow();
+                _appSettingWindow.Closed += (s, ev) => _appSettingWindow = null;
+                _appSettingWindow.Show();
+            }
         }
 
         private async Task CheckForUpdates()

@@ -139,12 +139,12 @@
                         NavigationCacheMode="Enabled"
                         TargetPageType="{x:Type local:CaptionPage}" />
                     <ui:NavigationViewItem
+                        x:Name="NavSettingItem"
                         Margin="0,3,0,0"
                         Content="{DynamicResource NavSetting}"
                         FontFamily="Bahnschrift"
                         Icon="{ui:SymbolIcon Settings24}"
-                        NavigationCacheMode="Required"
-                        TargetPageType="{x:Type local:SettingPage}" />
+                        Click="NavSettingItem_Click" />
                     <ui:NavigationViewItem
                         Margin="0,3,0,0"
                         Content="{DynamicResource NavHistory}"

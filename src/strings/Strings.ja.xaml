@@ -99,6 +99,9 @@
     <sys:String x:Key="WelcomeDescription2">&#x0A;&#x0A;ヒント:&#x0A;入力言語を変更するには、設定ページで Windows LiveCaptions を [表示] させて、Windows LiveCaptions 側で変更を行ってください。</sys:String>
     <sys:String x:Key="WelcomeButtonText">設定を完了しました</sys:String>
 
+    <!-- AppSettingWindow (Application Setting) -->
+    <sys:String x:Key="AppSettingTitle">環境設定</sys:String>
+
     <!-- SettingWindow (API Setting) -->
     <sys:String x:Key="APISettingTitle">API 設定</sys:String>
     <sys:String x:Key="Prompt">プロンプト</sys:String>
