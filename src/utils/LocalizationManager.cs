@@ -36,8 +36,8 @@ namespace LiveCaptionsTranslator.utils
                 Application.Current.Resources.MergedDictionaries.Remove(existing);
             }
 
-            // 新しい言語リソースのURIを設定します（デフォルトは日本語）
-            string uriString = lang == "en" ? "/src/strings/Strings.en.xaml" : "/src/strings/Strings.ja.xaml";
+            // 新しい言語リソースのURIを設定します（日本語固定）
+            string uriString = "/src/strings/Strings.ja.xaml";
             
             try
             {

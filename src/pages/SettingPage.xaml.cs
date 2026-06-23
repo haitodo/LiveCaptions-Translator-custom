@@ -34,16 +34,7 @@ namespace LiveCaptionsTranslator
             TranslateAPIBox.ItemsSource = Translator.Setting?.Configs.Keys;
             TranslateAPIBox.SelectedIndex = 0;
 
-            // UI言語セレクターの初期選択状態を設定します
-            string currentLang = Translator.Setting?.InterfaceLanguage ?? "ja";
-            foreach (ComboBoxItem item in UILanguageBox.Items)
-            {
-                if (item.Tag as string == currentLang)
-                {
-                    UILanguageBox.SelectedItem = item;
-                    break;
-                }
-            }
+
 
             LoadAPISetting();
             PopulateCaptionFontColors();
@@ -207,22 +198,7 @@ namespace LiveCaptionsTranslator
                 UpdateButtonText();
         }
 
-        private void UILanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (UILanguageBox.SelectedItem is ComboBoxItem item && item.Tag is string lang)
-            {
-                if (Translator.Setting != null && Translator.Setting.InterfaceLanguage != lang)
-                {
-                    Translator.Setting.InterfaceLanguage = lang;
-                    LocalizationManager.SetLanguage(lang);
-                    
-                    // UIテキストを更新します
-                    UpdateButtonText();
-                    PopulateCaptionFontColors();
-                    PopulateCaptionFontFamilies();
-                }
-            }
-        }
+
 
         public void LoadAPISetting()
         {

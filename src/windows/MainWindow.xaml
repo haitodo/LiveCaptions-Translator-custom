@@ -28,7 +28,6 @@
             CornerRadius="8"
             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
-            Opacity="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.Opacity}"
             ClipToBounds="True" />
         <Border
             Background="Transparent"

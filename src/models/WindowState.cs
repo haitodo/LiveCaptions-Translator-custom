@@ -20,6 +20,9 @@ namespace LiveCaptionsTranslator.models
         private bool captionFontBold = false;
         private string captionFontFamily = "Default";
         private double opacity = 1.0;
+        private int lineSpacingOriginalTranslated = 3;
+        private double lineHeightMultiplier = 1.25;
+        private int itemSpacing = 6;
 
         public bool Topmost
         {
@@ -112,6 +115,36 @@ namespace LiveCaptionsTranslator.models
             {
                 opacity = value;
                 OnPropertyChanged("Opacity");
+            }
+        }
+
+        public int LineSpacingOriginalTranslated
+        {
+            get => lineSpacingOriginalTranslated;
+            set
+            {
+                lineSpacingOriginalTranslated = value;
+                OnPropertyChanged("LineSpacingOriginalTranslated");
+            }
+        }
+
+        public double LineHeightMultiplier
+        {
+            get => lineHeightMultiplier;
+            set
+            {
+                lineHeightMultiplier = value;
+                OnPropertyChanged("LineHeightMultiplier");
+            }
+        }
+
+        public int ItemSpacing
+        {
+            get => itemSpacing;
+            set
+            {
+                itemSpacing = value;
+                OnPropertyChanged("ItemSpacing");
             }
         }
 

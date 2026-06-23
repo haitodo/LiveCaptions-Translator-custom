@@ -183,19 +183,7 @@
                     OffContent="{DynamicResource Off}"
                     OnContent="{DynamicResource On}" />
             </StackPanel>
-            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelUILanguage}" />
-                <ComboBox
-                    x:Name="UILanguageBox"
-                    Width="100"
-                    Height="30"
-                    Padding="10,4,10,7"
-                    FontSize="13.3"
-                    SelectionChanged="UILanguageBox_SelectionChanged">
-                    <ComboBoxItem Content="日本語" Tag="ja" />
-                    <ComboBoxItem Content="English" Tag="en" />
-                </ComboBox>
-            </StackPanel>
+
         </StackPanel>
 
         <StackPanel Grid.Column="3" Orientation="Vertical">
@@ -412,17 +400,57 @@
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
-                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelMainWindowOpacity}" />
-                <Slider
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelLineSpacingOriginalTranslated}" />
+                <ui:NumberBox
                     Width="135"
-                    AutoToolTipPlacement="TopLeft"
-                    AutoToolTipPrecision="2"
-                    Maximum="1.0"
-                    Minimum="0.1"
-                    TickFrequency="0.05"
-                    IsSnapToTickEnabled="True"
-                    Value="{Binding MainWindow.Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="30"
+                    Minimum="0"
+                    LargeChange="5"
+                    SmallChange="1"
+                    Value="{Binding MainWindow.LineSpacingOriginalTranslated, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelLineHeightMultiplier}" />
+                <ui:NumberBox
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="2.5"
+                    Minimum="1.0"
+                    LargeChange="0.2"
+                    SmallChange="0.05"
+                    Value="{Binding MainWindow.LineHeightMultiplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelItemSpacing}" />
+                <ui:NumberBox
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="40"
+                    Minimum="0"
+                    LargeChange="5"
+                    SmallChange="1"
+                    Value="{Binding MainWindow.ItemSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+
         </StackPanel>
     </Grid>
     </ScrollViewer>

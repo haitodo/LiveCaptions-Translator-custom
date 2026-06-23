@@ -17,6 +17,9 @@
         <utils:ColorToBrushConverter x:Key="ColorToBrush" />
         <utils:BoolToFontWeightConverter x:Key="BoolToFontWeight" />
         <utils:FontFamilyConverter x:Key="FontFamilyConverter" />
+        <utils:FontSizeToThicknessConverter x:Key="FontSizeToThicknessConverter" />
+        <utils:ValueToThicknessConverter x:Key="ValueToThicknessConverter" />
+        <utils:FontSizeToLineHeightMultiConverter x:Key="FontSizeToLineHeightMultiConverter" />
         <Style x:Key="CaptionBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -41,7 +44,7 @@
             <ui:Card
                 x:Name="LogCards"
                 Margin="0,0,0,0"
-                Padding="8"
+                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter=0.44}"
                 Background="Transparent"
                 BorderBrush="#00000000"
                 Visibility="Collapsed">
@@ -52,9 +55,9 @@
                     VirtualizingPanel.IsVirtualizing="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border
-                                Margin="0,0,0,8"
-                                Padding="12,10,12,10"
+                             <Border
+                                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,0,0,1'}"
+                                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter='0.66,0.55'}"
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 BorderThickness="0"
@@ -72,7 +75,15 @@
                                         Style="{StaticResource CaptionBlockStyle}"
                                         Text="{Binding SourceText}"
                                         ToolTip="{DynamicResource ToolTipClickToCopy}"
-                                        Visibility="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption, Converter={StaticResource BoolToVis}}" />
+                                        Visibility="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption, Converter={StaticResource BoolToVis}}"
+                                        LineStackingStrategy="BlockLineHeight">
+                                        <TextBlock.LineHeight>
+                                            <MultiBinding Converter="{StaticResource FontSizeToLineHeightMultiConverter}">
+                                                <Binding Path="FontSize" RelativeSource="{RelativeSource Self}" />
+                                                <Binding Source="{x:Static local:Translator.Setting}" Path="MainWindow.LineHeightMultiplier" />
+                                            </MultiBinding>
+                                        </TextBlock.LineHeight>
+                                    </TextBlock>
                                     <TextBlock
                                         x:Name="TranslatedCaptionLog"
                                         Background="Transparent"
@@ -83,12 +94,19 @@
                                         Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorPrimaryBrush}}"
                                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                                         Text="{Binding TranslatedText}"
-                                        ToolTip="{DynamicResource ToolTipClickToCopy}">
+                                        ToolTip="{DynamicResource ToolTipClickToCopy}"
+                                        LineStackingStrategy="BlockLineHeight">
+                                        <TextBlock.LineHeight>
+                                            <MultiBinding Converter="{StaticResource FontSizeToLineHeightMultiConverter}">
+                                                <Binding Path="FontSize" RelativeSource="{RelativeSource Self}" />
+                                                <Binding Source="{x:Static local:Translator.Setting}" Path="MainWindow.LineHeightMultiplier" />
+                                            </MultiBinding>
+                                        </TextBlock.LineHeight>
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionBlockStyle}">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption}" Value="True">
-                                                        <Setter Property="Margin" Value="0,4,0,0" />
+                                                        <Setter Property="Margin" Value="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.LineSpacingOriginalTranslated, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,1,0,0'}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -101,64 +119,80 @@
                 </ItemsControl>
             </ui:Card>
 
-            <!-- 原文カード（自動翻訳OFF時または ShowOriginalCaption=true時に表示） -->
-            <ui:Card
-                x:Name="OriginalCaptionCard"
-                Margin="0,0,0,6"
-                Padding="8"
-                Background="Transparent"
-                BorderThickness="0"
-                Visibility="Collapsed">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Grid.Column="0"
-                        x:Name="OriginalCaption"
-                        Background="Transparent"
-                        Cursor="Hand"
-                        FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSizeOriginal}"
-                        FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
-                        FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
-                        Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorSecondaryBrush}}"
-                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                        Style="{StaticResource CaptionBlockStyle}"
-                        Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
-                        ToolTip="{DynamicResource ToolTipClickToCopy}" />
-                    <ui:Button
-                        Grid.Column="1"
-                        x:Name="ManualTranslateButton"
-                        Margin="5,0,0,0"
-                        Padding="6,4"
-                        VerticalAlignment="Center"
-                        Click="ManualTranslateButton_Click"
-                        Icon="{ui:SymbolIcon Translate24}"
-                        ToolTip="{DynamicResource ToolTipTranslateNow}" />
-                </Grid>
-            </ui:Card>
-
-            <!-- 翻訳済みテキストカード（常に最下部） -->
+            <!-- 翻訳テキスト表示カード（原文表示設定がオンの場合は原文もカード内に内包される） -->
             <ui:Card
                 x:Name="TranslatedCaptionCard"
                 MinHeight="43"
-                Margin="0,0,0,8"
-                Padding="8"
+                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,0,0,1'}"
+                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter=0.44}"
                 Background="Transparent"
                 BorderThickness="0">
-                <TextBlock
-                    x:Name="TranslatedCaption"
-                    Background="Transparent"
-                    Cursor="Hand"
-                    FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize}"
-                    FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
-                    FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
-                    Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorPrimaryBrush}}"
-                    MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                    Style="{StaticResource CaptionBlockStyle}"
-                    Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
-                    ToolTip="{DynamicResource ToolTipClickToCopy}" />
+                <StackPanel Orientation="Vertical">
+                    
+                    <!-- 原文エリア (自動翻訳OFFまたは ShowOriginalCaption=trueの時のみ表示) -->
+                    <Grid
+                        x:Name="OriginalCaptionCard"
+                        Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.LineSpacingOriginalTranslated, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,0,0,1'}"
+                        Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            x:Name="OriginalCaption"
+                            Background="Transparent"
+                            Cursor="Hand"
+                            FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSizeOriginal}"
+                            FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                            FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                            Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorSecondaryBrush}}"
+                            MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                            Style="{StaticResource CaptionBlockStyle}"
+                            Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="{DynamicResource ToolTipClickToCopy}"
+                            LineStackingStrategy="BlockLineHeight">
+                            <TextBlock.LineHeight>
+                                <MultiBinding Converter="{StaticResource FontSizeToLineHeightMultiConverter}">
+                                    <Binding Path="FontSize" RelativeSource="{RelativeSource Self}" />
+                                    <Binding Source="{x:Static local:Translator.Setting}" Path="MainWindow.LineHeightMultiplier" />
+                                </MultiBinding>
+                            </TextBlock.LineHeight>
+                        </TextBlock>
+                        <ui:Button
+                            Grid.Column="1"
+                            x:Name="ManualTranslateButton"
+                            Margin="5,0,0,0"
+                            Padding="6,4"
+                            VerticalAlignment="Center"
+                            Click="ManualTranslateButton_Click"
+                            Icon="{ui:SymbolIcon Translate24}"
+                            ToolTip="{DynamicResource ToolTipTranslateNow}" />
+                    </Grid>
+
+                    <!-- 翻訳文表示 -->
+                    <TextBlock
+                        x:Name="TranslatedCaption"
+                        Background="Transparent"
+                        Cursor="Hand"
+                        FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize}"
+                        FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                        FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                        Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorPrimaryBrush}}"
+                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                        Style="{StaticResource CaptionBlockStyle}"
+                        Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="{DynamicResource ToolTipClickToCopy}"
+                        LineStackingStrategy="BlockLineHeight">
+                        <TextBlock.LineHeight>
+                            <MultiBinding Converter="{StaticResource FontSizeToLineHeightMultiConverter}">
+                                <Binding Path="FontSize" RelativeSource="{RelativeSource Self}" />
+                                <Binding Source="{x:Static local:Translator.Setting}" Path="MainWindow.LineHeightMultiplier" />
+                            </MultiBinding>
+                        </TextBlock.LineHeight>
+                    </TextBlock>
+                    
+                </StackPanel>
             </ui:Card>
 
         </StackPanel>

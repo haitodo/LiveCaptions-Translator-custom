@@ -22,12 +22,7 @@ namespace LiveCaptionsTranslator
             InitializeComponent();
             ApplicationThemeManager.ApplySystemTheme();
 
-            RootNavigation.Navigated += (s, e) => UpdateBackgroundOpacity();
 
-            if (Translator.Setting?.MainWindow != null)
-            {
-                UpdateBackgroundOpacity();
-            }
 
             Loaded += (s, e) =>
             {
@@ -354,31 +349,6 @@ namespace LiveCaptionsTranslator
                         ToggleTopmost(Translator.Setting.MainWindow.Topmost);
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
-            }
-            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.Opacity))
-            {
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (Translator.Setting?.MainWindow != null)
-                    {
-                        UpdateBackgroundOpacity();
-                    }
-                }), System.Windows.Threading.DispatcherPriority.Background);
-            }
-        }
-
-        private void UpdateBackgroundOpacity()
-        {
-            if (Translator.Setting?.MainWindow == null) return;
-
-            var selectedItem = RootNavigation.SelectedItem as NavigationViewItem;
-            if (selectedItem != null && selectedItem.TargetPageType == typeof(CaptionPage))
-            {
-                WindowBackgroundBorder.Opacity = Translator.Setting.MainWindow.Opacity;
-            }
-            else
-            {
-                WindowBackgroundBorder.Opacity = 1.0;
             }
         }
 

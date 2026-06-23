@@ -135,7 +135,9 @@
     <sys:String x:Key="LabelCaptionFontBold">字幕を太字にする</sys:String>
     <sys:String x:Key="LabelCaptionFontColor">字幕フォント色</sys:String>
     <sys:String x:Key="LabelCaptionFontFamily">字幕フォントの種類</sys:String>
-    <sys:String x:Key="LabelMainWindowOpacity">ホーム画面の不透明度</sys:String>
+    <sys:String x:Key="LabelLineSpacingOriginalTranslated">翻訳前後の行間 (px)</sys:String>
+    <sys:String x:Key="LabelLineHeightMultiplier">複数行の行間 (倍率)</sys:String>
+    <sys:String x:Key="LabelItemSpacing">履歴・カードの間隔 (px)</sys:String>
     <sys:String x:Key="ToolTipLiveCaptions">Windows Live Captions の表示/非表示</sys:String>
 
     <!-- Colors -->
