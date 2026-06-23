@@ -249,12 +249,29 @@ namespace LiveCaptionsTranslator.models
             batchMaxTokens = 4096;
             targetLanguage = "ja-JP";
             interfaceLanguage = "ja";
-            prompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。不完全な文章であっても、流暢かつ的確な翻訳を提供できます。これから、🔤で囲まれた文章を {0} に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
-            batchPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
-                          "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
-                          "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
-                          "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
-                          "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
+
+            // 自然な口語ニュアンスを維持する設定（単文翻訳用）
+            prompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。音声認識による不完全な文章であっても、話者の感情やカジュアルさ、口調などのニュアンスをそのまま日本語に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+
+            // 自然な口語ニュアンスを維持する設定（一括翻訳用）
+            batchPrompt = "あなたは映画や動画、フリートークのニュアンスを完璧に捉えるプロの翻訳者です。以下の音声認識（文字起こし）による文章リストを、自然な日本語に翻訳してください。\n\n" +
+                          "【翻訳ルール】\n" +
+                          "1. 堅苦しい直訳は避け、話者の「言い方」「感情」「ニュアンス」「カジュアルさ」をできるだけそのまま生かした、自然な日本語（話し言葉・会話表現）に翻訳してください。過度に丁寧な表現（不自然な「です・ます調」）にする必要はありません。\n" +
+                          "2. 文字起こし特有の言い淀み（\"um\", \"ah\", \"like\" など）や、直後の言い直しによる重複は、日本語として最も自然に聞こえるようにうまく補完・省略して翻訳してください。\n" +
+                          "3. 入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                          "4. 出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つ、有効なJSON配列形式のみとしてください。\n" +
+                          "5. 余計な説明、挨拶、マークダウンのコードブロック（```json など）は絶対に含めず、純粋なJSON配列のみを返却してください。\n\n" +
+                          "【翻訳例 (Few-Shot)】\n" +
+                          "入力:\n" +
+                          "[\n" +
+                          "  { \"id\": 0, \"text\": \"Yeah, so... I was thinking, like, maybe we could...\" },\n" +
+                          "  { \"id\": 1, \"text\": \"maybe we could try this new restaurant, you know?\" }\n" +
+                          "]\n" +
+                          "出力:\n" +
+                          "[\n" +
+                          "  { \"id\": 0, \"translation\": \"それでさ… なんか、もしかしたら…って思ったんだけど、\" },\n" +
+                          "  { \"id\": 1, \"translation\": \"あの新しいレストラン、行ってみない？\" }\n" +
+                          "]";
 
             mainWindowState = new MainWindowState();
 
@@ -370,18 +387,44 @@ namespace LiveCaptionsTranslator.models
                            "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
                            "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
 
-            if (setting.prompt == oldDefaultPrompt || string.IsNullOrEmpty(setting.prompt))
+            // 以前の硬い日本語の初期値
+            string previousJaDefaultPrompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。不完全な文章であっても、流暢かつ的確な翻訳を提供できます。これから、🔤で囲まれた文章を {0} に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+            string previousJaDefaultBatchPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
+                          "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                          "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
+                          "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
+                          "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
+
+            // 新規の自然なニュアンス重視のプロンプト
+            string newDefaultPrompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。音声認識による不完全な文章であっても、話者の感情やカジュアルさ、口調などのニュアンスをそのまま日本語に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+            string newDefaultBatchPrompt = "あなたは映画や動画、フリートークのニュアンスを完璧に捉えるプロの翻訳者です。以下の音声認識（文字起こし）による文章リストを、自然な日本語に翻訳してください。\n\n" +
+                          "【翻訳ルール】\n" +
+                          "1. 堅苦しい直訳は避け、話者の「言い方」「感情」「ニュアンス」「カジュアルさ」をできるだけそのまま生かした、自然な日本語（話し言葉・会話表現）に翻訳してください。過度に丁寧な表現（不自然な「です・ます調」）にする必要はありません。\n" +
+                          "2. 文字起こし特有の言い淀み（\"um\", \"ah\", \"like\" など）や、直後の言い直しによる重複は、日本語として最も自然に聞こえるようにうまく補完・省略して翻訳してください。\n" +
+                          "3. 入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                          "4. 出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つ、有効なJSON配列形式のみとしてください。\n" +
+                          "5. 余計な説明、挨拶、マークダウンのコードブロック（```json など）は絶対に含めず、純粋なJSON配列のみを返却してください。\n\n" +
+                          "【翻訳例 (Few-Shot)】\n" +
+                          "入力:\n" +
+                          "[\n" +
+                          "  { \"id\": 0, \"text\": \"Yeah, so... I was thinking, like, maybe we could...\" },\n" +
+                          "  { \"id\": 1, \"text\": \"maybe we could try this new restaurant, you know?\" }\n" +
+                          "]\n" +
+                          "出力:\n" +
+                          "[\n" +
+                          "  { \"id\": 0, \"translation\": \"それでさ… なんか、もしかしたら…って思ったんだけど、\" },\n" +
+                          "  { \"id\": 1, \"translation\": \"あの新しいレストラン、行ってみない？\" }\n" +
+                          "]";
+
+            // 古いプロンプト、または硬い日本語プロンプト、空の場合は、最新のニュアンス対応プロンプトに更新
+            if (setting.prompt == oldDefaultPrompt || setting.prompt == previousJaDefaultPrompt || string.IsNullOrEmpty(setting.prompt))
             {
-                setting.prompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。不完全な文章であっても、流暢かつ的確な翻訳を提供できます。これから、🔤で囲まれた文章を {0} に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+                setting.prompt = newDefaultPrompt;
             }
 
-            if (setting.batchPrompt == oldDefaultBatchPrompt || string.IsNullOrEmpty(setting.batchPrompt))
+            if (setting.batchPrompt == oldDefaultBatchPrompt || setting.batchPrompt == previousJaDefaultBatchPrompt || string.IsNullOrEmpty(setting.batchPrompt))
             {
-                setting.batchPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
-                                      "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
-                                      "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
-                                      "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
-                                      "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
+                setting.batchPrompt = newDefaultBatchPrompt;
             }
 
             if (setting.batchMaxTokens <= 0)
@@ -420,6 +463,32 @@ namespace LiveCaptionsTranslator.models
         {
             string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), FILENAME);
             return File.Exists(jsonPath);
+        }
+    }
+
+    /// <summary>
+    /// LLMからの一括翻訳結果を安全に受信しマッピングするためのデータ転送オブジェクト (DTO)
+    /// </summary>
+    public class BatchTranslationItem
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("translation")]
+        public string Translation { get; set; } = string.Empty;
+
+        // LLMがまれに異なるキー名で出力した場合のフォールバック用プロパティ
+        [JsonPropertyName("translated")]
+        public string? Translated { get; set; }
+
+        [JsonPropertyName("text")]
+        public string? Text { get; set; }
+
+        public string GetResult()
+        {
+            if (!string.IsNullOrEmpty(Translation)) return Translation;
+            if (!string.IsNullOrEmpty(Translated)) return Translated;
+            return Text ?? string.Empty;
         }
     }
 }
