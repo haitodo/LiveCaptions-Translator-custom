@@ -100,7 +100,7 @@
                 CornerRadius="8">
                 <ScrollViewer x:Name="ContentScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="ContentPanel" Margin="25">
-                        
+
                         <!-- セクション: 全般 -->
                         <StackPanel x:Name="GeneralSection" Margin="0,0,0,30">
                             <ui:TextBlock
@@ -223,12 +223,9 @@
 
                             <!-- カード: 翻訳 API と API 設定ボタン -->
                             <ui:Card Margin="0,0,0,10" Padding="15">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <!-- 1行目: APIエンジンの選択 -->
+                                    <Grid Margin="0,0,0,10">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -260,12 +257,18 @@
                                             x:Name="TranslateAPIBox"
                                             Width="160"
                                             Height="32"
+                                            Padding="6,0,6,0"
+                                            VerticalContentAlignment="Center"
                                             VerticalAlignment="Center"
                                             SelectedItem="{Binding ApiName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             SelectionChanged="TranslateAPIBox_SelectionChanged" />
                                     </Grid>
-                                    <Separator Grid.Row="1" Margin="0,5,0,10" />
-                                    <Grid Grid.Row="1" Margin="0,5,0,0">
+
+                                    <!-- 2行目: 区切り線 (StackPanelにしたため、お互いに重なることがなくなります) -->
+                                    <Separator Margin="0,5,0,10" />
+
+                                    <!-- 3行目: API設定を開くボタン -->
+                                    <Grid Margin="0,5,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -283,7 +286,7 @@
                                             </StackPanel>
                                         </ui:Button>
                                     </Grid>
-                                </Grid>
+                                </StackPanel>
                             </ui:Card>
 
                             <!-- カード: 一括翻訳用 API -->
@@ -302,6 +305,8 @@
                                         x:Name="BatchTranslateAPIBox"
                                         Width="160"
                                         Height="32"
+                                        Padding="6,0,6,0"
+                                        VerticalContentAlignment="Center"
                                         VerticalAlignment="Center"
                                         SelectedItem="{Binding BatchApiName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
@@ -581,6 +586,8 @@
                                             x:Name="CaptionFontFamilyBox"
                                             Width="180"
                                             Height="32"
+                                            Padding="6,0,6,0"
+                                            VerticalContentAlignment="Center"
                                             SelectionChanged="CaptionFontFamilyBox_SelectionChanged" />
                                     </Grid>
                                     <Separator Margin="0,5,0,10" />
@@ -621,6 +628,8 @@
                                             x:Name="CaptionFontColorBox"
                                             Width="120"
                                             Height="32"
+                                            Padding="6,0,6,0"
+                                            VerticalContentAlignment="Center"
                                             SelectionChanged="CaptionFontColorBox_SelectionChanged" />
                                     </Grid>
                                     <Separator Margin="0,5,0,10" />
