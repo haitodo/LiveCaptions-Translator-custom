@@ -12,6 +12,9 @@ namespace LiveCaptionsTranslator.apis
         public const int SW_MINIMIZE = 6;
         public const int SW_RESTORE = 9;
 
+        // 【追加】DWM関連の定数
+        public const int DWMWA_TRANSITIONS_FORCEDISABLED = 3;
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool ShowWindow(nint hWnd, int nCmdShow);
 
@@ -39,6 +42,15 @@ namespace LiveCaptionsTranslator.apis
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(nint hWnd, out RECT lpRect);
+
+        // 【追加】DWMのウィンドウ属性を設定するAPI
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        public static extern int DwmSetWindowAttribute(
+            nint hwnd,
+            int attr,
+            ref int attrValue,
+            int cbAttribute
+        );
 
         public const int MONITOR_DEFAULTTONULL = 0;
         public const int MONITOR_DEFAULTTOPRIMARY = 1;

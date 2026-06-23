@@ -13,19 +13,58 @@ namespace LiveCaptionsTranslator.utils
 
         public static AutomationElement LaunchLiveCaptions()
         {
-            // Init
+            // 安全な終了処理の実行
             KillAllProcessesByPName(PROCESS_NAME);
-            var process = Process.Start(PROCESS_NAME);
 
-            // Search for window
+            // シンプルかつ確実に LiveCaptions を起動
+            var process = Process.Start(PROCESS_NAME);
+            if (process == null)
+                throw new Exception("Failed to start LiveCaptions process!");
+
             AutomationElement? window = null;
-            for (int attemptCount = 0;
-                 window == null || window.Current.ClassName.CompareTo("LiveCaptionsDesktopWindow") != 0;
-                 attemptCount++)
+
+            // 最大3秒（300回 * 10ms）のタイムアウトを設定し、
+            // ウィンドウ初期化中の例外（COM切断など）を安全に処理する堅牢なループ
+            for (int attemptCount = 0; attemptCount < 300; attemptCount++)
             {
-                window = FindWindowByPId(process.Id);
-                if (attemptCount > 10000)
-                    throw new Exception("Failed to launch LiveCaptions!");
+                var foundWindow = FindWindowByPId(process.Id);
+                if (foundWindow != null)
+                {
+                    try
+                    {
+                        // 起動直後はプロパティ取得エラーが起きやすいため、安全にアクセスします
+                        string className = foundWindow.Current.ClassName;
+                        if (string.Equals(className, "LiveCaptionsDesktopWindow", StringComparison.Ordinal))
+                        {
+                            window = foundWindow;
+                            break;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ウィンドウが完全に初期化される前は無視してループを継続します
+                    }
+                }
+
+                Thread.Sleep(10);
+            }
+
+            if (window == null)
+                throw new Exception("Failed to launch LiveCaptions (Window not found within timeout)!");
+
+            // 【対策】ウィンドウを検出した瞬間に、アニメーションを強制無効化し画面外（不可視領域）に退避
+            try
+            {
+                nint hWnd = new nint((long)window.Current.NativeWindowHandle);
+
+                int disableTransition = 1; // TRUE
+                WindowsAPI.DwmSetWindowAttribute(hWnd, WindowsAPI.DWMWA_TRANSITIONS_FORCEDISABLED, ref disableTransition, sizeof(int));
+
+                WindowsAPI.MoveWindow(hWnd, -32000, -32000, 100, 100, false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to apply early offscreen positioning: {ex.Message}");
             }
 
             return window;
@@ -33,52 +72,97 @@ namespace LiveCaptionsTranslator.utils
 
         public static void KillLiveCaptions(AutomationElement window)
         {
-            // Search for process
-            nint hWnd = new nint((long)window.Current.NativeWindowHandle);
-            WindowsAPI.GetWindowThreadProcessId(hWnd, out int processId);
-            var process = Process.GetProcessById(processId);
+            try
+            {
+                nint hWnd = new nint((long)window.Current.NativeWindowHandle);
+                WindowsAPI.GetWindowThreadProcessId(hWnd, out int processId);
+                var process = Process.GetProcessById(processId);
 
-            // Kill process
-            process.Kill();
-            process.WaitForExit();
+                if (!process.HasExited)
+                {
+                    process.Kill();
+                    process.WaitForExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to kill LiveCaptions process: {ex.Message}");
+            }
         }
 
         public static void HideLiveCaptions(AutomationElement window)
         {
-            nint hWnd = new nint((long)window.Current.NativeWindowHandle);
-            int exStyle = WindowsAPI.GetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE);
+            try
+            {
+                nint hWnd = new nint((long)window.Current.NativeWindowHandle);
 
-            WindowsAPI.ShowWindow(hWnd, WindowsAPI.SW_MINIMIZE);
-            WindowsAPI.SetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE, exStyle | WindowsAPI.WS_EX_TOOLWINDOW);
+                // DWMアニメーションを一時的にオフ
+                int disableTransition = 1; // TRUE
+                WindowsAPI.DwmSetWindowAttribute(hWnd, WindowsAPI.DWMWA_TRANSITIONS_FORCEDISABLED, ref disableTransition, sizeof(int));
+
+                // 画面外に一瞬で移動
+                WindowsAPI.MoveWindow(hWnd, -32000, -32000, 100, 100, false);
+
+                int exStyle = WindowsAPI.GetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE);
+
+                // アニメーションなしで最小化し、タスクバー非表示（ツールウィンドウ化）を適用
+                WindowsAPI.ShowWindow(hWnd, WindowsAPI.SW_MINIMIZE);
+                WindowsAPI.SetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE, exStyle | WindowsAPI.WS_EX_TOOLWINDOW);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to hide LiveCaptions!", ex);
+            }
         }
 
         public static void RestoreLiveCaptions(AutomationElement window)
         {
-            nint hWnd = new nint((long)window.Current.NativeWindowHandle);
-            int exStyle = WindowsAPI.GetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE);
+            try
+            {
+                nint hWnd = new nint((long)window.Current.NativeWindowHandle);
+                int exStyle = WindowsAPI.GetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE);
 
-            WindowsAPI.SetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE, exStyle & ~WindowsAPI.WS_EX_TOOLWINDOW);
-            WindowsAPI.ShowWindow(hWnd, WindowsAPI.SW_RESTORE);
-            WindowsAPI.SetForegroundWindow(hWnd);
+                // 復元時はアニメーション効果を再び有効に戻す
+                int disableTransition = 0; // FALSE
+                WindowsAPI.DwmSetWindowAttribute(hWnd, WindowsAPI.DWMWA_TRANSITIONS_FORCEDISABLED, ref disableTransition, sizeof(int));
+
+                WindowsAPI.SetWindowLong(hWnd, WindowsAPI.GWL_EXSTYLE, exStyle & ~WindowsAPI.WS_EX_TOOLWINDOW);
+                WindowsAPI.ShowWindow(hWnd, WindowsAPI.SW_RESTORE);
+                WindowsAPI.SetForegroundWindow(hWnd);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to restore LiveCaptions!", ex);
+            }
         }
 
         public static void FixLiveCaptions(AutomationElement window)
         {
-            nint hWnd = new nint((long)window.Current.NativeWindowHandle);
+            try
+            {
+                nint hWnd = new nint((long)window.Current.NativeWindowHandle);
 
-            RECT rect;
-            if (!WindowsAPI.GetWindowRect(hWnd, out rect))
-                throw new Exception("Unable to get the window rectangle of LiveCaptions!");
-            int width = rect.Right - rect.Left;
-            int height = rect.Bottom - rect.Top;
-            int x = rect.Left;
-            int y = rect.Top;
+                RECT rect;
+                if (!WindowsAPI.GetWindowRect(hWnd, out rect))
+                    throw new Exception("Unable to get the window rectangle of LiveCaptions!");
 
-            bool isSuccess = true;
-            if (x < 0 || y < 0 || width < 100 || height < 100)
-                isSuccess = WindowsAPI.MoveWindow(hWnd, 800, 600, 600, 200, true);
-            if (!isSuccess)
-                throw new Exception("Failed to fix LiveCaptions!");
+                int width = rect.Right - rect.Left;
+                int height = rect.Bottom - rect.Top;
+                int x = rect.Left;
+                int y = rect.Top;
+
+                bool isSuccess = true;
+                // 画面外（x < 0 || y < 0）にある場合でも、正常な位置に引き戻す
+                if (x < 0 || y < 0 || width < 100 || height < 100)
+                    isSuccess = WindowsAPI.MoveWindow(hWnd, 800, 600, 600, 200, true);
+
+                if (!isSuccess)
+                    throw new Exception("Failed to fix LiveCaptions position!");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error during fixing LiveCaptions!", ex);
+            }
         }
 
         public static string GetCaptions(AutomationElement window)
@@ -130,8 +214,15 @@ namespace LiveCaptionsTranslator.utils
             while (stack.Count > 0)
             {
                 var element = stack.Pop();
-                if (!string.IsNullOrEmpty(element.Current.AutomationId))
-                    Console.WriteLine(element.Current.AutomationId);
+                try
+                {
+                    if (!string.IsNullOrEmpty(element.Current.AutomationId))
+                        Console.WriteLine(element.Current.AutomationId);
+                }
+                catch (ElementNotAvailableException)
+                {
+                    continue;
+                }
 
                 var child = treeWalker.GetFirstChild(element);
                 while (child != null)
@@ -147,8 +238,7 @@ namespace LiveCaptionsTranslator.utils
             var settingsButton = FindElementByAId(window, "SettingsButton");
             if (settingsButton != null)
             {
-                var invokePattern = settingsButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                if (invokePattern != null)
+                if (settingsButton.GetCurrentPattern(InvokePattern.Pattern) is InvokePattern invokePattern)
                 {
                     invokePattern.Invoke();
                     return true;
@@ -162,10 +252,21 @@ namespace LiveCaptionsTranslator.utils
             var processes = Process.GetProcessesByName(processName);
             if (processes.Length == 0)
                 return;
+
             foreach (Process process in processes)
             {
-                process.Kill();
-                process.WaitForExit();
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                        process.WaitForExit();
+                    }
+                }
+                catch (Exception)
+                {
+                    // 権限エラーや、既に終了している場合の例外を無視して次のプロセスへ進める
+                }
             }
         }
     }
