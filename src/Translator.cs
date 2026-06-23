@@ -20,6 +20,7 @@ namespace LiveCaptionsTranslator
 
         private static string accumulatedOriginalText = string.Empty;
         private static readonly object accumulateLock = new object();
+        private static string lastClearedRawText = string.Empty;
 
         public static AutomationElement? Window
         {
@@ -76,6 +77,27 @@ namespace LiveCaptionsTranslator
                 }
                 if (string.IsNullOrEmpty(fullText))
                     continue;
+
+                // クリア直後に同一のテキストが再取得されて画面に復元されるのを防ぐ
+                if (!string.IsNullOrEmpty(lastClearedRawText) && string.Equals(fullText, lastClearedRawText, StringComparison.Ordinal))
+                {
+                    if (caption != null)
+                    {
+                        caption.OriginalCaption = string.Empty;
+                        caption.TranslatedCaption = string.Empty;
+                        caption.DisplayOriginalCaption = string.Empty;
+                        caption.DisplayTranslatedCaption = string.Empty;
+                        caption.OverlayOriginalCaption = " ";
+                        caption.OverlayCurrentTranslation = " ";
+                        caption.OverlayNoticePrefix = " ";
+                    }
+                    Thread.Sleep(25);
+                    continue;
+                }
+                else
+                {
+                    lastClearedRawText = string.Empty;
+                }
 
                 // Preprocess
                 fullText = RegexPatterns.Acronym().Replace(fullText, "$1$2");
@@ -434,6 +456,41 @@ namespace LiveCaptionsTranslator
             Caption?.OnPropertyChanged("DisplayLogCards");
             Caption?.OnPropertyChanged("OverlayPreviousTranslation");
             Caption?.OnPropertyChanged("OverlayPreviousOriginal");
+        }
+
+        public static void ClearAllCaptions()
+        {
+            try
+            {
+                if (Window != null)
+                {
+                    lastClearedRawText = LiveCaptionsHandler.GetCaptions(Window) ?? string.Empty;
+                }
+            }
+            catch
+            {
+                lastClearedRawText = string.Empty;
+            }
+
+            lock (accumulateLock)
+            {
+                accumulatedOriginalText = string.Empty;
+            }
+            pendingTextQueue.Clear();
+            translationTaskQueue.Clear();
+
+            ClearContexts();
+
+            if (caption != null)
+            {
+                caption.OriginalCaption = string.Empty;
+                caption.TranslatedCaption = string.Empty;
+                caption.DisplayOriginalCaption = string.Empty;
+                caption.DisplayTranslatedCaption = string.Empty;
+                caption.OverlayOriginalCaption = " ";
+                caption.OverlayCurrentTranslation = " ";
+                caption.OverlayNoticePrefix = " ";
+            }
         }
 
         // If this text is too similar to the last one, overwrite it when logging.

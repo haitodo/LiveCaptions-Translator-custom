@@ -287,5 +287,10 @@ namespace LiveCaptionsTranslator
         {
             Translator.TriggerManualTranslation();
         }
+
+        private void ClearCaptions_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.ClearAllCaptions();
+        }
     }
 }

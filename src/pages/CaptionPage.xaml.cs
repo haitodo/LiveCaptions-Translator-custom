@@ -36,6 +36,7 @@ namespace LiveCaptionsTranslator
                     mainWindow.CaptionLogButton.Visibility = Visibility.Visible;
                     mainWindow.ShowOriginalButton.Visibility = Visibility.Visible;
                     mainWindow.AutoScrollButton.Visibility = Visibility.Visible;
+                    mainWindow.ClearButton.Visibility = Visibility.Visible;
                     ScrollViewer.SetVerticalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Disabled);
                     ScrollViewer.SetHorizontalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Disabled);
 
@@ -77,6 +78,7 @@ namespace LiveCaptionsTranslator
                     mainWindow.CaptionLogButton.Visibility = Visibility.Collapsed;
                     mainWindow.ShowOriginalButton.Visibility = Visibility.Collapsed;
                     mainWindow.AutoScrollButton.Visibility = Visibility.Collapsed;
+                    mainWindow.ClearButton.Visibility = Visibility.Collapsed;
                     ScrollViewer.SetVerticalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Auto);
                     ScrollViewer.SetHorizontalScrollBarVisibility(mainWindow.RootNavigation, ScrollBarVisibility.Auto);
 
@@ -288,12 +290,19 @@ namespace LiveCaptionsTranslator
 
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.T &&
-                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
                 (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
             {
-                Translator.TriggerManualTranslation();
-                e.Handled = true;
+                if (e.Key == Key.T)
+                {
+                    Translator.TriggerManualTranslation();
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.C)
+                {
+                    Translator.ClearAllCaptions();
+                    e.Handled = true;
+                }
             }
         }
 

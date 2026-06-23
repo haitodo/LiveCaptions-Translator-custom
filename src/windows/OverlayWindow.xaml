@@ -85,6 +85,14 @@
                                              Filled=False}"
                         ToolTip="{DynamicResource ToolTipOverlayTranslate}" />
                     <ui:Button
+                        x:Name="ClearCaptions"
+                        Background="#FFAAAAAA"
+                        Click="ClearCaptions_Click"
+                        Cursor="Hand"
+                        Icon="{ui:SymbolIcon Delete24,
+                                             Filled=False}"
+                        ToolTip="{DynamicResource ToolTipClearTranslations}" />
+                    <ui:Button
                         x:Name="FontSizeIncrease"
                         Background="#FFAAAAAA"
                         Click="FontIncrease_Click"

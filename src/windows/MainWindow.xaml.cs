@@ -65,6 +65,11 @@ namespace LiveCaptionsTranslator
             };
         }
 
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            Translator.ClearAllCaptions();
+        }
+
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
             ToggleTopmost(!this.Topmost);

@@ -21,6 +21,7 @@
     <sys:String x:Key="ToolTipLogCards">字幕ログカード</sys:String>
     <sys:String x:Key="ToolTipShowOriginal">原文の表示/非表示</sys:String>
     <sys:String x:Key="ToolTipAutoScroll">自動スクロールのオン/オフ</sys:String>
+    <sys:String x:Key="ToolTipClearTranslations">翻訳テキストをクリア (Ctrl+Shift+C)</sys:String>
     <sys:String x:Key="NavCaption">字幕</sys:String>
     <sys:String x:Key="NavSetting">設定</sys:String>
     <sys:String x:Key="NavHistory">履歴</sys:String>

@@ -14,6 +14,19 @@ namespace LiveCaptionsTranslator.models
             output = (string.Empty, false);
         }
 
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                foreach (var task in tasks)
+                {
+                    task.CTS.Cancel();
+                }
+                tasks.Clear();
+            }
+            output = (string.Empty, false);
+        }
+
         public void Enqueue(Func<CancellationToken, Task<(string, bool)>> worker, string originalText)
         {
             var newTranslationTask = new TranslationTask(worker, originalText, new CancellationTokenSource());
@@ -32,6 +45,9 @@ namespace LiveCaptionsTranslator.models
         {
             lock (_lock)
             {
+                if (!tasks.Contains(translationTask))
+                    return;
+
                 var index = tasks.IndexOf(translationTask);
                 for (int i = 0; i < index; i++)
                     tasks[i].CTS.Cancel();
