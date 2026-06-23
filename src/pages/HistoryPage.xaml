@@ -6,11 +6,15 @@
     xmlns:local="clr-namespace:LiveCaptionsTranslator"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:utils="clr-namespace:LiveCaptionsTranslator.Utils"
     Title="HistoryPage"
     HorizontalAlignment="Left"
     VerticalAlignment="Top"
     JournalEntry.KeepAlive="False"
     mc:Ignorable="d">
+    <Page.Resources>
+        <utils:ValueToThicknessConverter x:Key="ValueToThicknessConverter" />
+    </Page.Resources>
     <Grid Margin="15" VerticalAlignment="Top">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -152,6 +156,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock
+                                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.HistoryItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='12,1,12,1'}"
                                 Text="{Binding Timestamp}"
                                 TextWrapping="Wrap"
                                 ToolTip="{Binding TimestampFull}" />
@@ -162,7 +167,10 @@
                 <DataGridTemplateColumn Width="*" Header="{DynamicResource HeaderCaption}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding SourceText}" TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.HistoryItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='12,1,12,1'}"
+                                Text="{Binding SourceText}"
+                                TextWrapping="Wrap" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -170,7 +178,10 @@
                 <DataGridTemplateColumn Width="*" Header="{DynamicResource HeaderTranslated}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding TranslatedText}" TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.HistoryItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='12,1,12,1'}"
+                                Text="{Binding TranslatedText}"
+                                TextWrapping="Wrap" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -178,7 +189,10 @@
                 <DataGridTemplateColumn Width="0.3*" Header="{DynamicResource HeaderAPI}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding ApiUsed}" TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.HistoryItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='12,1,12,1'}"
+                                Text="{Binding ApiUsed}"
+                                TextWrapping="Wrap" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

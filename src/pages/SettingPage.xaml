@@ -450,6 +450,23 @@
                     Value="{Binding MainWindow.ItemSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
 
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelHistoryItemSpacing}" />
+                <ui:NumberBox
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="40"
+                    Minimum="0"
+                    LargeChange="5"
+                    SmallChange="1"
+                    Value="{Binding MainWindow.HistoryItemSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
 
         </StackPanel>
     </Grid>

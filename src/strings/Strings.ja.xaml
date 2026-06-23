@@ -137,7 +137,8 @@
     <sys:String x:Key="LabelCaptionFontFamily">字幕フォントの種類</sys:String>
     <sys:String x:Key="LabelLineSpacingOriginalTranslated">翻訳前後の行間 (px)</sys:String>
     <sys:String x:Key="LabelLineHeightMultiplier">複数行の行間 (倍率)</sys:String>
-    <sys:String x:Key="LabelItemSpacing">履歴・カードの間隔 (px)</sys:String>
+    <sys:String x:Key="LabelItemSpacing">ホーム画面のカード間隔 (px)</sys:String>
+    <sys:String x:Key="LabelHistoryItemSpacing">履歴の間隔 (px)</sys:String>
     <sys:String x:Key="ToolTipLiveCaptions">Windows Live Captions の表示/非表示</sys:String>
 
     <!-- Colors -->

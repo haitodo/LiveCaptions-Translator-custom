@@ -367,7 +367,7 @@ namespace LiveCaptionsTranslator
         // ホーム画面（CaptionPage）のアクティブ時にマウスホイールスクロールを強制的に制御する
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (CaptionPage.Instance != null && CaptionPage.Instance.IsLoaded)
+            if (CaptionPage.Instance != null && CaptionPage.Instance.IsVisible)
             {
                 var scrollViewer = CaptionPage.Instance.CaptionPageScrollViewer;
                 if (scrollViewer != null)

@@ -23,6 +23,7 @@ namespace LiveCaptionsTranslator.models
         private int lineSpacingOriginalTranslated = 3;
         private double lineHeightMultiplier = 1.25;
         private int itemSpacing = 6;
+        private int historyItemSpacing = 6;
 
         public bool Topmost
         {
@@ -145,6 +146,16 @@ namespace LiveCaptionsTranslator.models
             {
                 itemSpacing = value;
                 OnPropertyChanged("ItemSpacing");
+            }
+        }
+
+        public int HistoryItemSpacing
+        {
+            get => historyItemSpacing;
+            set
+            {
+                historyItemSpacing = value;
+                OnPropertyChanged("HistoryItemSpacing");
             }
         }
 

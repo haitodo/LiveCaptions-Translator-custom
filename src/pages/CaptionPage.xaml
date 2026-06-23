@@ -44,7 +44,7 @@
             <ui:Card
                 x:Name="LogCards"
                 Margin="0,0,0,0"
-                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter=0.44}"
+                Padding="0"
                 Background="Transparent"
                 BorderBrush="#00000000"
                 Visibility="Collapsed">
@@ -57,7 +57,7 @@
                         <DataTemplate>
                              <Border
                                 Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,0,0,1'}"
-                                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter='0.66,0.55'}"
+                                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter='0.66,0.15'}"
                                 Background="Transparent"
                                 BorderBrush="Transparent"
                                 BorderThickness="0"
@@ -122,9 +122,8 @@
             <!-- 翻訳テキスト表示カード（原文表示設定がオンの場合は原文もカード内に内包される） -->
             <ui:Card
                 x:Name="TranslatedCaptionCard"
-                MinHeight="43"
                 Margin="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ItemSpacing, Converter={StaticResource ValueToThicknessConverter}, ConverterParameter='0,0,0,1'}"
-                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter=0.44}"
+                Padding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize, Converter={StaticResource FontSizeToThicknessConverter}, ConverterParameter='0.66,0.15'}"
                 Background="Transparent"
                 BorderThickness="0">
                 <StackPanel Orientation="Vertical">
