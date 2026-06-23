@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:LiveCaptionsTranslator"
+    xmlns:utils="clr-namespace:LiveCaptionsTranslator.Utils"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="CaptionPage"
@@ -13,6 +14,9 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <utils:ColorToBrushConverter x:Key="ColorToBrush" />
+        <utils:BoolToFontWeightConverter x:Key="BoolToFontWeight" />
+        <utils:FontFamilyConverter x:Key="FontFamilyConverter" />
         <Style x:Key="CaptionBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -51,17 +55,19 @@
                             <Border
                                 Margin="0,0,0,8"
                                 Padding="12,10,12,10"
-                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
                                 CornerRadius="6">
                                 <StackPanel Orientation="Vertical">
                                     <TextBlock
                                         x:Name="OriginalCaptionLog"
                                         Background="Transparent"
                                         Cursor="Hand"
-                                        FontSize="12.5"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSizeLogOriginal}"
+                                        FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                                        FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                                        Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorSecondaryBrush}}"
                                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                                         Style="{StaticResource CaptionBlockStyle}"
                                         Text="{Binding SourceText}"
@@ -71,9 +77,10 @@
                                         x:Name="TranslatedCaptionLog"
                                         Background="Transparent"
                                         Cursor="Hand"
-                                        FontSize="15.5"
-                                        FontWeight="SemiBold"
-                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSizeLog}"
+                                        FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                                        FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                                        Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorPrimaryBrush}}"
                                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                                         Text="{Binding TranslatedText}"
                                         ToolTip="{DynamicResource ToolTipClickToCopy}">
@@ -99,6 +106,8 @@
                 x:Name="OriginalCaptionCard"
                 Margin="0,0,0,6"
                 Padding="8"
+                Background="Transparent"
+                BorderThickness="0"
                 Visibility="Collapsed">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -110,7 +119,10 @@
                         x:Name="OriginalCaption"
                         Background="Transparent"
                         Cursor="Hand"
-                        FontSize="15"
+                        FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSizeOriginal}"
+                        FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                        FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                        Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorSecondaryBrush}}"
                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                         Style="{StaticResource CaptionBlockStyle}"
                         Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
@@ -132,12 +144,17 @@
                 x:Name="TranslatedCaptionCard"
                 MinHeight="43"
                 Margin="0,0,0,8"
-                Padding="8">
+                Padding="8"
+                Background="Transparent"
+                BorderThickness="0">
                 <TextBlock
                     x:Name="TranslatedCaption"
                     Background="Transparent"
                     Cursor="Hand"
-                    FontSize="18"
+                    FontSize="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontSize}"
+                    FontWeight="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontBold, Converter={StaticResource BoolToFontWeight}}"
+                    FontFamily="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontFamily, Converter={StaticResource FontFamilyConverter}}"
+                    Foreground="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.CaptionFontColor, Converter={StaticResource ColorToBrush}, ConverterParameter={StaticResource TextFillColorPrimaryBrush}}"
                     MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                     Style="{StaticResource CaptionBlockStyle}"
                     Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"

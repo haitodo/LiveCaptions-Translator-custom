@@ -22,7 +22,11 @@ namespace LiveCaptionsTranslator
 
             Loaded += (s, e) =>
             {
-                (App.Current.MainWindow as MainWindow)?.AutoHeightAdjust(maxHeight: (int)App.Current.MainWindow.MinHeight);
+                var mainWindow = App.Current.MainWindow as MainWindow;
+                if (mainWindow != null && mainWindow.IsAutoHeight)
+                {
+                    mainWindow.AutoHeightAdjust(maxHeight: (int)mainWindow.MinHeight);
+                }
                 CheckForFirstUse();
                 UpdateButtonText();
             };
@@ -42,6 +46,8 @@ namespace LiveCaptionsTranslator
             }
 
             LoadAPISetting();
+            PopulateCaptionFontColors();
+            PopulateCaptionFontFamilies();
         }
 
         private void UpdateButtonText()
@@ -70,6 +76,7 @@ namespace LiveCaptionsTranslator
                 LiveCaptionsHandler.HideLiveCaptions(Translator.Window);
             }
             UpdateButtonText();
+            (App.Current.MainWindow as MainWindow)?.UpdateLiveCaptionsButtonState();
         }
 
         private void TranslateAPIBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -211,6 +218,8 @@ namespace LiveCaptionsTranslator
                     
                     // UIテキストを更新します
                     UpdateButtonText();
+                    PopulateCaptionFontColors();
+                    PopulateCaptionFontFamilies();
                 }
             }
         }
@@ -239,6 +248,101 @@ namespace LiveCaptionsTranslator
             if (!supportedLanguages.ContainsKey(targetLang))
                 supportedLanguages[targetLang] = targetLang;    // add custom language to supported languages
             TargetLangBox.SelectedItem = targetLang;
+        }
+
+        private void PopulateCaptionFontColors()
+        {
+            if (CaptionFontColorBox == null) return;
+
+            var selectedTag = (CaptionFontColorBox.SelectedItem as ComboBoxItem)?.Tag as Utils.Color?;
+            if (selectedTag == null && Translator.Setting?.MainWindow != null)
+            {
+                selectedTag = Translator.Setting.MainWindow.CaptionFontColor;
+            }
+
+            CaptionFontColorBox.Items.Clear();
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorDefault") as string ?? "Default", Tag = Utils.Color.Default });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorWhite") as string ?? "White", Tag = Utils.Color.White });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorYellow") as string ?? "Yellow", Tag = Utils.Color.Yellow });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorLimeGreen") as string ?? "Green", Tag = Utils.Color.LimeGreen });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorAqua") as string ?? "Aqua", Tag = Utils.Color.Aqua });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorBlue") as string ?? "Blue", Tag = Utils.Color.Blue });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorDeepPink") as string ?? "Pink", Tag = Utils.Color.DeepPink });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorRed") as string ?? "Red", Tag = Utils.Color.Red });
+            CaptionFontColorBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorBlack") as string ?? "Black", Tag = Utils.Color.Black });
+
+            if (selectedTag != null)
+            {
+                foreach (ComboBoxItem item in CaptionFontColorBox.Items)
+                {
+                    if ((Utils.Color)item.Tag == selectedTag.Value)
+                    {
+                        CaptionFontColorBox.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void CaptionFontColorBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CaptionFontColorBox.SelectedItem is ComboBoxItem item && item.Tag is Utils.Color color)
+            {
+                if (Translator.Setting?.MainWindow != null)
+                {
+                    Translator.Setting.MainWindow.CaptionFontColor = color;
+                }
+            }
+        }
+
+        private void PopulateCaptionFontFamilies()
+        {
+            if (CaptionFontFamilyBox == null) return;
+
+            string selectedFont = "Default";
+            if (CaptionFontFamilyBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                selectedFont = selectedItem.Tag as string ?? "Default";
+            }
+            else if (Translator.Setting?.MainWindow != null)
+            {
+                selectedFont = Translator.Setting.MainWindow.CaptionFontFamily;
+            }
+
+            CaptionFontFamilyBox.Items.Clear();
+            CaptionFontFamilyBox.Items.Add(new ComboBoxItem { Content = Application.Current.TryFindResource("ColorDefault") as string ?? "Default", Tag = "Default" });
+
+            var fonts = new System.Collections.Generic.List<string>();
+            foreach (var fontFamily in System.Windows.Media.Fonts.SystemFontFamilies)
+            {
+                fonts.Add(fontFamily.Source);
+            }
+            fonts.Sort();
+
+            foreach (var fontName in fonts)
+            {
+                CaptionFontFamilyBox.Items.Add(new ComboBoxItem { Content = fontName, Tag = fontName });
+            }
+
+            foreach (ComboBoxItem item in CaptionFontFamilyBox.Items)
+            {
+                if ((item.Tag as string) == selectedFont)
+                {
+                    CaptionFontFamilyBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        private void CaptionFontFamilyBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CaptionFontFamilyBox.SelectedItem is ComboBoxItem item && item.Tag is string fontName)
+            {
+                if (Translator.Setting?.MainWindow != null)
+                {
+                    Translator.Setting.MainWindow.CaptionFontFamily = fontName;
+                }
+            }
         }
     }
 }

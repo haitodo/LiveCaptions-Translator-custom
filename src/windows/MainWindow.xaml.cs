@@ -12,7 +12,7 @@ using Button = Wpf.Ui.Controls.Button;
 
 namespace LiveCaptionsTranslator
 {
-    public partial class MainWindow : FluentWindow
+    public partial class MainWindow : Window
     {
         public OverlayWindow? OverlayWindow { get; set; } = null;
         public bool IsAutoHeight { get; set; } = true;
@@ -22,12 +22,21 @@ namespace LiveCaptionsTranslator
             InitializeComponent();
             ApplicationThemeManager.ApplySystemTheme();
 
+            RootNavigation.Navigated += (s, e) => UpdateBackgroundOpacity();
+
+            if (Translator.Setting?.MainWindow != null)
+            {
+                UpdateBackgroundOpacity();
+            }
+
             Loaded += (s, e) =>
             {
-                SystemThemeWatcher.Watch(this, WindowBackdropType.Mica, true);
+                SystemThemeWatcher.Watch(this, WindowBackdropType.None, false);
+                this.Background = System.Windows.Media.Brushes.Transparent;
                 RootNavigation.Navigate(typeof(CaptionPage));
                 CheckForFirstUse();
                 CheckForUpdates();
+                UpdateLiveCaptionsButtonState();
             };
 
             double screenWidth = SystemParameters.PrimaryScreenWidth;
@@ -125,6 +134,7 @@ namespace LiveCaptionsTranslator
         {
             if (Translator.Setting?.MainWindow != null)
             {
+                IsAutoHeight = true;
                 Translator.Setting.MainWindow.CaptionLogEnabled = !Translator.Setting.MainWindow.CaptionLogEnabled;
             }
         }
@@ -330,6 +340,7 @@ namespace LiveCaptionsTranslator
                     if (Translator.Setting?.MainWindow != null)
                     {
                         ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
+                        IsAutoHeight = true;
                         CaptionPage.Instance?.AutoHeight();
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
@@ -343,6 +354,31 @@ namespace LiveCaptionsTranslator
                         ToggleTopmost(Translator.Setting.MainWindow.Topmost);
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.Opacity))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        UpdateBackgroundOpacity();
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
+        private void UpdateBackgroundOpacity()
+        {
+            if (Translator.Setting?.MainWindow == null) return;
+
+            var selectedItem = RootNavigation.SelectedItem as NavigationViewItem;
+            if (selectedItem != null && selectedItem.TargetPageType == typeof(CaptionPage))
+            {
+                WindowBackgroundBorder.Opacity = Translator.Setting.MainWindow.Opacity;
+            }
+            else
+            {
+                WindowBackgroundBorder.Opacity = 1.0;
             }
         }
 
@@ -379,6 +415,35 @@ namespace LiveCaptionsTranslator
                     }
                     e.Handled = true;
                 }
+            }
+        }
+
+        private void LiveCaptionsToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Translator.Window == null)
+                return;
+
+            bool isHide = Translator.Window.Current.BoundingRectangle == Rect.Empty;
+            if (isHide)
+            {
+                LiveCaptionsHandler.RestoreLiveCaptions(Translator.Window);
+            }
+            else
+            {
+                LiveCaptionsHandler.HideLiveCaptions(Translator.Window);
+            }
+            UpdateLiveCaptionsButtonState();
+        }
+
+        public void UpdateLiveCaptionsButtonState()
+        {
+            if (Translator.Window == null || LiveCaptionsToggleButton == null) return;
+
+            bool isHide = Translator.Window.Current.BoundingRectangle == Rect.Empty;
+            if (LiveCaptionsToggleButton.Icon is SymbolIcon icon)
+            {
+                icon.Filled = !isHide;
+                LiveCaptionsToggleButton.Appearance = !isHide ? ControlAppearance.Primary : ControlAppearance.Transparent;
             }
         }
     }

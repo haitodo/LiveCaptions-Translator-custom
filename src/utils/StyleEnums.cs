@@ -23,6 +23,7 @@ namespace LiveCaptionsTranslator.Utils
 
     public enum Color
     {
+        Default = 0,
         White = 1,
         Yellow = 2,
         LimeGreen = 3,

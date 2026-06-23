@@ -129,4 +129,23 @@
     <sys:String x:Key="ToolTipOnlyMode">字幕のみ、または翻訳のみを表示する</sys:String>
     <sys:String x:Key="ToolTipSwitchMode">字幕と翻訳の表示順を入れ替える</sys:String>
     <sys:String x:Key="ToolTipClickThrough">マウスクリック透過</sys:String>
+
+    <!-- Home Screen Customization -->
+    <sys:String x:Key="LabelCaptionFontSize">字幕フォントサイズ</sys:String>
+    <sys:String x:Key="LabelCaptionFontBold">字幕を太字にする</sys:String>
+    <sys:String x:Key="LabelCaptionFontColor">字幕フォント色</sys:String>
+    <sys:String x:Key="LabelCaptionFontFamily">字幕フォントの種類</sys:String>
+    <sys:String x:Key="LabelMainWindowOpacity">ホーム画面の不透明度</sys:String>
+    <sys:String x:Key="ToolTipLiveCaptions">Windows Live Captions の表示/非表示</sys:String>
+
+    <!-- Colors -->
+    <sys:String x:Key="ColorDefault">デフォルト</sys:String>
+    <sys:String x:Key="ColorWhite">白</sys:String>
+    <sys:String x:Key="ColorYellow">黄</sys:String>
+    <sys:String x:Key="ColorLimeGreen">緑</sys:String>
+    <sys:String x:Key="ColorAqua">水色</sys:String>
+    <sys:String x:Key="ColorBlue">青</sys:String>
+    <sys:String x:Key="ColorDeepPink">ピンク</sys:String>
+    <sys:String x:Key="ColorRed">赤</sys:String>
+    <sys:String x:Key="ColorBlack">黒</sys:String>
 </ResourceDictionary>

@@ -10,14 +10,16 @@
     JournalEntry.KeepAlive="False"
     mc:Ignorable="d">
 
-    <Grid Margin="15">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Orientation="Vertical">
             <StackPanel Margin="15,0,0,0" Orientation="Vertical">
@@ -357,5 +359,71 @@
                     IsEnabled="{Binding IsAccumulateThresholdEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
         </StackPanel>
+
+        <StackPanel Grid.Column="5" Orientation="Vertical">
+            <StackPanel Margin="15,0,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelCaptionFontSize}" />
+                <ui:NumberBox
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    ClearButtonEnabled="False"
+                    AcceptsExpression="False"
+                    SpinButtonPlacementMode="Inline"
+                    Maximum="40"
+                    Minimum="10"
+                    LargeChange="2"
+                    SmallChange="1"
+                    Value="{Binding MainWindow.CaptionFontSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelCaptionFontColor}" />
+                <ComboBox
+                    x:Name="CaptionFontColorBox"
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    SelectionChanged="CaptionFontColorBox_SelectionChanged" />
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelCaptionFontFamily}" />
+                <ComboBox
+                    x:Name="CaptionFontFamilyBox"
+                    Width="135"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    FontSize="13.3"
+                    SelectionChanged="CaptionFontFamilyBox_SelectionChanged" />
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelCaptionFontBold}" />
+                <ui:ToggleSwitch
+                    Width="90"
+                    Height="30"
+                    Padding="10,4,10,7"
+                    IsChecked="{Binding MainWindow.CaptionFontBold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    OffContent="{DynamicResource Off}"
+                    OnContent="{DynamicResource On}" />
+            </StackPanel>
+
+            <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="{DynamicResource LabelMainWindowOpacity}" />
+                <Slider
+                    Width="135"
+                    AutoToolTipPlacement="TopLeft"
+                    AutoToolTipPrecision="2"
+                    Maximum="1.0"
+                    Minimum="0.1"
+                    TickFrequency="0.05"
+                    IsSnapToTickEnabled="True"
+                    Value="{Binding MainWindow.Opacity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </StackPanel>
     </Grid>
+    </ScrollViewer>
 </Page>

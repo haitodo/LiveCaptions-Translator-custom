@@ -64,6 +64,7 @@ namespace LiveCaptionsTranslator
                 }
 
                 UpdateOriginalCaptionVisibility();
+                UpdateTranslatedFontSize();
 
                 // ページロード時に最下部へスクロール
                 ScrollToBottomIfEnabled();
@@ -181,20 +182,7 @@ namespace LiveCaptionsTranslator
         {
             if (e.PropertyName == nameof(Translator.Caption.DisplayTranslatedCaption))
             {
-                if (Encoding.UTF8.GetByteCount(Translator.Caption.DisplayTranslatedCaption) >= TextUtil.LONG_THRESHOLD)
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.TranslatedCaption.FontSize = 15;
-                    }), DispatcherPriority.Background);
-                }
-                else
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.TranslatedCaption.FontSize = 18;
-                    }), DispatcherPriority.Background);
-                }
+                UpdateTranslatedFontSize();
             }
 
             if (e.PropertyName == nameof(Translator.Caption.DisplayLogCards) ||
@@ -225,6 +213,10 @@ namespace LiveCaptionsTranslator
                 {
                     ScrollToBottomIfEnabled();
                 }
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.CaptionFontSize))
+            {
+                Dispatcher.BeginInvoke(new Action(() => UpdateTranslatedFontSize()), DispatcherPriority.Background);
             }
         }
 
@@ -268,6 +260,8 @@ namespace LiveCaptionsTranslator
         {
             var mainWindow = App.Current.MainWindow as MainWindow;
             if (mainWindow == null) return;
+
+            if (!mainWindow.IsAutoHeight) return;
 
             if (Translator.Setting.MainWindow.CaptionLogEnabled)
             {
@@ -347,6 +341,23 @@ namespace LiveCaptionsTranslator
                     }
                 }
             }
+        }
+
+        private void UpdateTranslatedFontSize()
+        {
+            if (Translator.Setting?.MainWindow == null) return;
+            int baseSize = Translator.Setting.MainWindow.CaptionFontSize;
+
+            bool isLong = Encoding.UTF8.GetByteCount(Translator.Caption.DisplayTranslatedCaption ?? "") >= TextUtil.LONG_THRESHOLD;
+            int targetSize = isLong ? Math.Max(8, baseSize - 3) : baseSize;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (this.TranslatedCaption != null)
+                {
+                    this.TranslatedCaption.FontSize = targetSize;
+                }
+            }), DispatcherPriority.Background);
         }
     }
 }

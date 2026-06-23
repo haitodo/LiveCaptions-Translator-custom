@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using LiveCaptionsTranslator.Utils;
@@ -13,6 +14,12 @@ namespace LiveCaptionsTranslator.models
         private bool latencyShow = false;
         private bool showOriginalCaption = false;
         private bool autoScrollEnabled = true;
+
+        private int captionFontSize = 18;
+        private Color captionFontColor = Color.Default;
+        private bool captionFontBold = false;
+        private string captionFontFamily = "Default";
+        private double opacity = 1.0;
 
         public bool Topmost
         {
@@ -59,6 +66,63 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("LatencyShow");
             }
         }
+        public int CaptionFontSize
+        {
+            get => captionFontSize;
+            set
+            {
+                captionFontSize = value;
+                OnPropertyChanged("CaptionFontSize");
+                OnPropertyChanged("CaptionFontSizeOriginal");
+                OnPropertyChanged("CaptionFontSizeLog");
+                OnPropertyChanged("CaptionFontSizeLogOriginal");
+            }
+        }
+        public Color CaptionFontColor
+        {
+            get => captionFontColor;
+            set
+            {
+                captionFontColor = value;
+                OnPropertyChanged("CaptionFontColor");
+            }
+        }
+        public bool CaptionFontBold
+        {
+            get => captionFontBold;
+            set
+            {
+                captionFontBold = value;
+                OnPropertyChanged("CaptionFontBold");
+            }
+        }
+        public string CaptionFontFamily
+        {
+            get => captionFontFamily;
+            set
+            {
+                captionFontFamily = value;
+                OnPropertyChanged("CaptionFontFamily");
+            }
+        }
+        public double Opacity
+        {
+            get => opacity;
+            set
+            {
+                opacity = value;
+                OnPropertyChanged("Opacity");
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int CaptionFontSizeOriginal => Math.Max(8, captionFontSize - 3);
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int CaptionFontSizeLog => Math.Max(8, (int)(captionFontSize * 0.86));
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int CaptionFontSizeLogOriginal => Math.Max(8, (int)(captionFontSize * 0.7));
 
         public void OnPropertyChanged([CallerMemberName] string propName = "")
         {

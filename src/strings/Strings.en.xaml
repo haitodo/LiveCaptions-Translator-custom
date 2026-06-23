@@ -129,4 +129,23 @@
     <sys:String x:Key="ToolTipOnlyMode">Show only subtitles or translations</sys:String>
     <sys:String x:Key="ToolTipSwitchMode">Switch the order of subtitles and translations</sys:String>
     <sys:String x:Key="ToolTipClickThrough">Click Through</sys:String>
+
+    <!-- Home Screen Customization -->
+    <sys:String x:Key="LabelCaptionFontSize">Caption Font Size</sys:String>
+    <sys:String x:Key="LabelCaptionFontBold">Caption Font Bold</sys:String>
+    <sys:String x:Key="LabelCaptionFontColor">Caption Font Color</sys:String>
+    <sys:String x:Key="LabelCaptionFontFamily">Caption Font Family</sys:String>
+    <sys:String x:Key="LabelMainWindowOpacity">Home Window Opacity</sys:String>
+    <sys:String x:Key="ToolTipLiveCaptions">Show/Hide Windows Live Captions</sys:String>
+
+    <!-- Colors -->
+    <sys:String x:Key="ColorDefault">Default</sys:String>
+    <sys:String x:Key="ColorWhite">White</sys:String>
+    <sys:String x:Key="ColorYellow">Yellow</sys:String>
+    <sys:String x:Key="ColorLimeGreen">Green</sys:String>
+    <sys:String x:Key="ColorAqua">Aqua</sys:String>
+    <sys:String x:Key="ColorBlue">Blue</sys:String>
+    <sys:String x:Key="ColorDeepPink">Pink</sys:String>
+    <sys:String x:Key="ColorRed">Red</sys:String>
+    <sys:String x:Key="ColorBlack">Black</sys:String>
 </ResourceDictionary>
