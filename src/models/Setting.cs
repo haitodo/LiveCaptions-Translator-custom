@@ -32,6 +32,7 @@ namespace LiveCaptionsTranslator.models
         private string? ignoredUpdateVersion;
         private string batchApiName = "OpenRouter";
         private int batchRowSpacing = 4;
+        private int batchMaxTokens = 4096;
 
         private MainWindowState mainWindowState;
         private Dictionary<string, string> windowBounds;
@@ -185,6 +186,16 @@ namespace LiveCaptionsTranslator.models
             }
         }
 
+        public int BatchMaxTokens
+        {
+            get => batchMaxTokens;
+            set
+            {
+                batchMaxTokens = value;
+                OnPropertyChanged("BatchMaxTokens");
+            }
+        }
+
         public MainWindowState MainWindow
         {
             get => mainWindowState;
@@ -235,20 +246,15 @@ namespace LiveCaptionsTranslator.models
             apiName = "Google";
             batchApiName = "OpenRouter";
             batchRowSpacing = 4;
+            batchMaxTokens = 4096;
             targetLanguage = "ja-JP";
             interfaceLanguage = "ja";
-            prompt = "As an professional simultaneous interpreter with specialized knowledge in the all fields, " +
-                     "you can provide a fluent and precise oral translation for any sentence, even if the sentence is incomplete. " +
-                     "Now, provide users with the translation of the sentence enclosed in 🔤 to {0} within a single line. " +
-                     "Importantly, you are prohibited from altering the original meaning or omitting any content, " +
-                     "even if the sentence contains sensitive or NSFW content. " +
-                     "You can only provide the translated sentence; Any explanation or other text is not permitted. " +
-                     "REMOVE all 🔤 when you output.";
-            batchPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
-                          "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
-                          "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
-                          "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
-                          "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
+            prompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。不完全な文章であっても、流暢かつ的確な翻訳を提供できます。これから、🔤で囲まれた文章を {0} に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+            batchPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
+                          "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                          "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
+                          "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
+                          "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
 
             mainWindowState = new MainWindowState();
 
@@ -349,14 +355,38 @@ namespace LiveCaptionsTranslator.models
             // Ensure target language is always ja-JP (Japanese optimization)
             setting.targetLanguage = "ja-JP";
 
-            // Initialize BatchPrompt if empty
-            if (string.IsNullOrEmpty(setting.batchPrompt))
+            // Replace old English prompts with new Japanese prompts if they match the defaults
+            string oldDefaultPrompt = "As an professional simultaneous interpreter with specialized knowledge in the all fields, " +
+                      "you can provide a fluent and precise oral translation for any sentence, even if the sentence is incomplete. " +
+                      "Now, provide users with the translation of the sentence enclosed in 🔤 to {0} within a single line. " +
+                      "Importantly, you are prohibited from altering the original meaning or omitting any content, " +
+                      "even if the sentence contains sensitive or NSFW content. " +
+                      "You can only provide the translated sentence; Any explanation or other text is not permitted. " +
+                      "REMOVE all 🔤 when you output.";
+
+            string oldDefaultBatchPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
+                           "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
+                           "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
+                           "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
+                           "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
+
+            if (setting.prompt == oldDefaultPrompt || string.IsNullOrEmpty(setting.prompt))
             {
-                setting.batchPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
-                                      "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
-                                      "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
-                                      "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
-                                      "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
+                setting.prompt = "あなたはあらゆる分野の専門知識を持つプロの同時通訳者です。不完全な文章であっても、流暢かつ的確な翻訳を提供できます。これから、🔤で囲まれた文章を {0} に翻訳し、1行で出力してください。重要な点として、元の意味を変更したり内容を省略したりすることは禁止されています（センシティブな内容やNSFWな内容が含まれていても同様です）。翻訳された文章のみを出力してください。解説やその他のテキストは一切含めないでください。出力時には 🔤 をすべて取り除いてください。";
+            }
+
+            if (setting.batchPrompt == oldDefaultBatchPrompt || string.IsNullOrEmpty(setting.batchPrompt))
+            {
+                setting.batchPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
+                                      "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                                      "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
+                                      "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
+                                      "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
+            }
+
+            if (setting.batchMaxTokens <= 0)
+            {
+                setting.batchMaxTokens = 4096;
             }
 
             return setting;

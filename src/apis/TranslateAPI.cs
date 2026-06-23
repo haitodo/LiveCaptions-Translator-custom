@@ -35,6 +35,10 @@ namespace LiveCaptionsTranslator.apis
         {
             "Ollama", "OpenAI", "OpenRouter", "LMStudio"
         };
+        public static readonly List<string> BATCH_TRANSLATE_APIS = new()
+        {
+            "Google", "Google2", "Ollama", "OpenAI", "OpenRouter", "LMStudio"
+        };
         public static readonly List<string> NO_CONFIG_APIS = new()
         {
             "Google", "Google2"
@@ -47,7 +51,7 @@ namespace LiveCaptionsTranslator.apis
 
         private static readonly HttpClient client = new HttpClient()
         {
-            Timeout = TimeSpan.FromSeconds(8)
+            Timeout = TimeSpan.FromSeconds(100)
         };
         private static int openai_fallback_index = 0;
 
@@ -109,7 +113,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -172,7 +176,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -238,7 +242,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -322,7 +326,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -363,7 +367,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -409,7 +413,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -464,7 +468,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -522,7 +526,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -576,7 +580,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -627,7 +631,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -681,7 +685,7 @@ namespace LiveCaptionsTranslator.apis
             catch (OperationCanceledException ex)
             {
                 if (ex.Message.StartsWith("The request"))
-                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 8 seconds), " +
+                    return $"[ERROR] Translation Failed: The request was canceled due to timeout (> 100 seconds), " +
                            $"please use a faster API or check network connection.";
                 throw;
             }
@@ -800,11 +804,11 @@ namespace LiveCaptionsTranslator.apis
             string systemPrompt = Translator.Setting?.BatchPrompt;
             if (string.IsNullOrEmpty(systemPrompt))
             {
-                systemPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
-                               "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
-                               "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
-                               "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
-                               "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
+                systemPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
+                               "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                               "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
+                               "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
+                               "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
             }
 
             if (systemPrompt.Contains("{0}"))
@@ -830,6 +834,7 @@ namespace LiveCaptionsTranslator.apis
 
                 HttpResponseMessage response;
                 var requestData = LLMRequestDataFactory.Create(0, openAiConfig.ModelName, messages, openAiConfig.Temperature);
+                if (requestData != null) requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -858,7 +863,11 @@ namespace LiveCaptionsTranslator.apis
                 };
 
                 var requestData = LLMRequestDataFactory.Create("Ollama", ollamaConfig.ModelName, messages, ollamaConfig.Temperature);
-                requestData.keep_alive = ollamaConfig.keep_alive;
+                if (requestData != null)
+                {
+                    requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
+                    requestData.keep_alive = ollamaConfig.keep_alive;
+                }
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
@@ -888,6 +897,7 @@ namespace LiveCaptionsTranslator.apis
                 };
 
                 var requestData = LLMRequestDataFactory.Create("OpenRouter", openRouterConfig.ModelName, messages, openRouterConfig.Temperature);
+                if (requestData != null) requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
@@ -920,7 +930,8 @@ namespace LiveCaptionsTranslator.apis
                     model = lmStudioConfig.ModelName,
                     system_prompt = systemPrompt,
                     input = text,
-                    temperature = lmStudioConfig.Temperature
+                    temperature = lmStudioConfig.Temperature,
+                    max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096
                 };
 
                 string jsonContent = JsonSerializer.Serialize(requestData);

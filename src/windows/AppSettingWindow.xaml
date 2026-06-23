@@ -307,6 +307,29 @@
                                 </Grid>
                             </ui:Card>
 
+                            <!-- カード: 一括翻訳の最大トークン数 -->
+                            <ui:Card Margin="0,0,0,10" Padding="15">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <ui:TextBlock FontWeight="SemiBold" Text="一括翻訳の最大トークン数 (max_tokens)" />
+                                        <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="一括翻訳時に取得する翻訳データの最大トークン数を指定します（デフォルト: 4096）。" />
+                                    </StackPanel>
+                                    <ui:NumberBox
+                                        Grid.Column="1"
+                                        Width="160"
+                                        Height="32"
+                                        ClearButtonEnabled="False"
+                                        AcceptsExpression="False"
+                                        SpinButtonPlacementMode="Inline"
+                                        Maximum="16384"
+                                        Minimum="256"
+                                        Value="{Binding BatchMaxTokens, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                            </ui:Card>
 
                             <!-- カード: 自動翻訳 -->
                             <ui:Card Margin="0,0,0,10" Padding="15">

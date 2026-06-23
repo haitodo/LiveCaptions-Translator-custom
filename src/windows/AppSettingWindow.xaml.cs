@@ -45,7 +45,7 @@ namespace LiveCaptionsTranslator
                 TranslateAPIBox.ItemsSource = Translator.Setting.Configs.Keys;
                 TranslateAPIBox.SelectedItem = Translator.Setting.ApiName;
 
-                BatchTranslateAPIBox.ItemsSource = LiveCaptionsTranslator.apis.TranslateAPI.LLM_BASED_APIS;
+                BatchTranslateAPIBox.ItemsSource = LiveCaptionsTranslator.apis.TranslateAPI.BATCH_TRANSLATE_APIS;
                 BatchTranslateAPIBox.SelectedItem = Translator.Setting.BatchApiName;
             }
 

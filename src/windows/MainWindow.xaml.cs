@@ -433,32 +433,56 @@ namespace LiveCaptionsTranslator
             }
 
             string batchApiName = Translator.Setting?.BatchApiName ?? "OpenRouter";
+            BaseLLMConfig? config = null;
 
-            if (!TranslateAPI.GetBatchLLMConfig(batchApiName, out BaseLLMConfig? config))
+            if (batchApiName != "Google" && batchApiName != "Google2")
             {
-                string errorMsg = $"一括翻訳用 API として「{batchApiName}」が指定されていますが、API設定（APIキーまたはモデル名）が入力されていません。設定画面で API の設定を行ってください。";
-                var messageBox = new Wpf.Ui.Controls.MessageBox
+                if (!TranslateAPI.GetBatchLLMConfig(batchApiName, out config))
                 {
-                    Title = "LLM未設定",
-                    Content = errorMsg,
-                    CloseButtonText = "OK"
-                };
-                await messageBox.ShowDialogAsync();
-                return;
+                    string errorMsg = $"一括翻訳用 API として「{batchApiName}」が指定されていますが、API設定（APIキーまたはモデル名）が入力されていません。設定画面で API の設定を行ってください。";
+                    var messageBox = new Wpf.Ui.Controls.MessageBox
+                    {
+                        Title = "LLM未設定",
+                        Content = errorMsg,
+                        CloseButtonText = "OK"
+                    };
+                    await messageBox.ShowDialogAsync();
+                    return;
+                }
             }
 
+            LoadingOverlay.Visibility = Visibility.Visible;
             Cursor = Cursors.Wait;
             BatchTranslateButton.IsEnabled = false;
 
             try
             {
-                var inputObjects = originalSentences.Select((text, index) => new { id = index, text = text }).ToList();
-                string inputJson = JsonSerializer.Serialize(inputObjects, new JsonSerializerOptions { WriteIndented = true });
+                string translatedFullText = await Task.Run(async () =>
+                {
+                    if (batchApiName == "Google" || batchApiName == "Google2")
+                    {
+                        string joinedText = string.Join("\n", originalSentences);
+                        if (batchApiName == "Google")
+                        {
+                            return await TranslateAPI.Google(joinedText);
+                        }
+                        else
+                        {
+                            return await TranslateAPI.Google2(joinedText);
+                        }
+                    }
+                    else
+                    {
+                        var inputObjects = originalSentences.Select((text, index) => new { id = index, text = text }).ToList();
+                        string inputJson = JsonSerializer.Serialize(inputObjects, new JsonSerializerOptions { WriteIndented = true });
 
-                string translatedFullText = await TranslateAPI.TranslateBatchWithLLM(batchApiName, config!, inputJson, "ja-JP");
+                        return await TranslateAPI.TranslateBatchWithLLM(batchApiName, config!, inputJson, "ja-JP");
+                    }
+                });
 
                 if (translatedFullText.StartsWith("[ERROR]"))
                 {
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
                     var errorBox = new Wpf.Ui.Controls.MessageBox
                     {
                         Title = "一括翻訳エラー",
@@ -472,74 +496,77 @@ namespace LiveCaptionsTranslator
                 var rows = new List<BatchTranslationRow>();
                 bool parsedSuccessfully = false;
 
-                try
+                if (batchApiName != "Google" && batchApiName != "Google2")
                 {
-                    string jsonStr = translatedFullText.Trim();
-                    if (jsonStr.StartsWith("```"))
+                    try
                     {
-                        int firstLineEnd = jsonStr.IndexOf('\n');
-                        if (firstLineEnd != -1)
+                        string jsonStr = translatedFullText.Trim();
+                        if (jsonStr.StartsWith("```"))
                         {
-                            jsonStr = jsonStr.Substring(firstLineEnd + 1);
-                        }
-                        if (jsonStr.EndsWith("```"))
-                        {
-                            jsonStr = jsonStr.Substring(0, jsonStr.Length - 3);
-                        }
-                        jsonStr = jsonStr.Trim();
-                    }
-
-                    using (JsonDocument doc = JsonDocument.Parse(jsonStr))
-                    {
-                        if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                        {
-                            var translatedMap = new Dictionary<int, string>();
-                            int index = 0;
-                            foreach (var element in doc.RootElement.EnumerateArray())
+                            int firstLineEnd = jsonStr.IndexOf('\n');
+                            if (firstLineEnd != -1)
                             {
-                                int id = -1;
-                                if (element.TryGetProperty("id", out var idProp))
+                                jsonStr = jsonStr.Substring(firstLineEnd + 1);
+                            }
+                            if (jsonStr.EndsWith("```"))
+                            {
+                                jsonStr = jsonStr.Substring(0, jsonStr.Length - 3);
+                            }
+                            jsonStr = jsonStr.Trim();
+                        }
+
+                        using (JsonDocument doc = JsonDocument.Parse(jsonStr))
+                        {
+                            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                            {
+                                var translatedMap = new Dictionary<int, string>();
+                                int index = 0;
+                                foreach (var element in doc.RootElement.EnumerateArray())
                                 {
-                                    if (idProp.ValueKind == JsonValueKind.Number)
-                                        id = idProp.GetInt32();
-                                    else if (idProp.ValueKind == JsonValueKind.String && int.TryParse(idProp.GetString(), out int parsedId))
-                                        id = parsedId;
+                                    int id = -1;
+                                    if (element.TryGetProperty("id", out var idProp))
+                                    {
+                                        if (idProp.ValueKind == JsonValueKind.Number)
+                                            id = idProp.GetInt32();
+                                        else if (idProp.ValueKind == JsonValueKind.String && int.TryParse(idProp.GetString(), out int parsedId))
+                                            id = parsedId;
+                                    }
+
+                                    string translation = "";
+                                    if (element.TryGetProperty("translation", out var transProp))
+                                        translation = transProp.GetString() ?? "";
+                                    else if (element.TryGetProperty("translated", out var transProp2))
+                                        translation = transProp2.GetString() ?? "";
+                                    else if (element.TryGetProperty("text", out var transProp3))
+                                        translation = transProp3.GetString() ?? "";
+
+                                    if (id < 0)
+                                    {
+                                        id = index;
+                                    }
+
+                                    translatedMap[id] = translation;
+                                    index++;
                                 }
 
-                                string translation = "";
-                                if (element.TryGetProperty("translation", out var transProp))
-                                    translation = transProp.GetString() ?? "";
-                                else if (element.TryGetProperty("translated", out var transProp2))
-                                    translation = transProp2.GetString() ?? "";
-                                else if (element.TryGetProperty("text", out var transProp3))
-                                    translation = transProp3.GetString() ?? "";
-
-                                if (id < 0)
+                                for (int i = 0; i < originalSentences.Count; i++)
                                 {
-                                    id = index;
+                                    string src = originalSentences[i];
+                                    string trans = translatedMap.TryGetValue(i, out var t) ? t : string.Empty;
+                                    rows.Add(new BatchTranslationRow
+                                    {
+                                        SourceText = src,
+                                        TranslatedText = trans
+                                    });
                                 }
-
-                                translatedMap[id] = translation;
-                                index++;
+                                parsedSuccessfully = true;
                             }
-
-                            for (int i = 0; i < originalSentences.Count; i++)
-                            {
-                                string src = originalSentences[i];
-                                string trans = translatedMap.TryGetValue(i, out var t) ? t : string.Empty;
-                                rows.Add(new BatchTranslationRow
-                                {
-                                    SourceText = src,
-                                    TranslatedText = trans
-                                });
-                            }
-                            parsedSuccessfully = true;
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"JSON parsing failed: {ex.Message}. Falling back to line-by-line.");
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"JSON parsing failed: {ex.Message}. Falling back to line-by-line.");
+                    }
                 }
 
                 if (!parsedSuccessfully)
@@ -570,6 +597,7 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
                 var exceptionBox = new Wpf.Ui.Controls.MessageBox
                 {
                     Title = "一括翻訳エラー",
@@ -580,6 +608,7 @@ namespace LiveCaptionsTranslator
             }
             finally
             {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
                 Cursor = Cursors.Arrow;
                 BatchTranslateButton.IsEnabled = true;
             }

@@ -132,6 +132,18 @@
                 VerticalAlignment="Bottom" />
         </Grid>
         </Border>
+        <Border
+            x:Name="LoadingOverlay"
+            Background="#66000000"
+            CornerRadius="8"
+            Visibility="Collapsed">
+            <Grid>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressBar IsIndeterminate="True" Width="120" Height="4" Margin="0,0,0,10" />
+                    <ui:TextBlock Text="一括翻訳中..." Foreground="White" FontSize="13" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
         <ContentPresenter
             x:Name="DialogHostContainer"
             Visibility="Collapsed" />
