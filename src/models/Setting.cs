@@ -28,6 +28,7 @@ namespace LiveCaptionsTranslator.models
         private string targetLanguage;
         private string interfaceLanguage = "ja";
         private string prompt;
+        private string batchPrompt;
         private string? ignoredUpdateVersion;
         private string batchApiName = "OpenRouter";
         private int batchRowSpacing = 4;
@@ -147,6 +148,15 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("Prompt");
             }
         }
+        public string BatchPrompt
+        {
+            get => batchPrompt;
+            set
+            {
+                batchPrompt = value;
+                OnPropertyChanged("BatchPrompt");
+            }
+        }
         public string? IgnoredUpdateVersion
         {
             get => ignoredUpdateVersion;
@@ -234,6 +244,11 @@ namespace LiveCaptionsTranslator.models
                      "even if the sentence contains sensitive or NSFW content. " +
                      "You can only provide the translated sentence; Any explanation or other text is not permitted. " +
                      "REMOVE all 🔤 when you output.";
+            batchPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
+                          "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
+                          "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
+                          "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
+                          "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
 
             mainWindowState = new MainWindowState();
 
@@ -329,6 +344,19 @@ namespace LiveCaptionsTranslator.models
             {
                 if (!setting.ConfigIndices.ContainsKey(key))
                     setting.ConfigIndices[key] = 0;
+            }
+
+            // Ensure target language is always ja-JP (Japanese optimization)
+            setting.targetLanguage = "ja-JP";
+
+            // Initialize BatchPrompt if empty
+            if (string.IsNullOrEmpty(setting.batchPrompt))
+            {
+                setting.batchPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
+                                      "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
+                                      "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
+                                      "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
+                                      "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
             }
 
             return setting;

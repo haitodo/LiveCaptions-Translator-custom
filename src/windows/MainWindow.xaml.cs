@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Linq;
+using System.Text.Json;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -451,10 +452,10 @@ namespace LiveCaptionsTranslator
 
             try
             {
-                string joinedText = string.Join("\n", originalSentences);
-                string targetLanguage = Translator.Setting?.TargetLanguage ?? "ja-JP";
+                var inputObjects = originalSentences.Select((text, index) => new { id = index, text = text }).ToList();
+                string inputJson = JsonSerializer.Serialize(inputObjects, new JsonSerializerOptions { WriteIndented = true });
 
-                string translatedFullText = await TranslateAPI.TranslateBatchWithLLM(batchApiName, config!, joinedText, targetLanguage);
+                string translatedFullText = await TranslateAPI.TranslateBatchWithLLM(batchApiName, config!, inputJson, "ja-JP");
 
                 if (translatedFullText.StartsWith("[ERROR]"))
                 {
@@ -468,25 +469,100 @@ namespace LiveCaptionsTranslator
                     return;
                 }
 
-                var translatedLines = translatedFullText
-                    .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
-                    .Select(line => line.Trim())
-                    .ToList();
-
                 var rows = new List<BatchTranslationRow>();
-                int maxCount = Math.Max(originalSentences.Count, translatedLines.Count);
-                for (int i = 0; i < maxCount; i++)
+                bool parsedSuccessfully = false;
+
+                try
                 {
-                    string src = i < originalSentences.Count ? originalSentences[i] : string.Empty;
-                    string trans = i < translatedLines.Count ? translatedLines[i] : string.Empty;
-                    rows.Add(new BatchTranslationRow
+                    string jsonStr = translatedFullText.Trim();
+                    if (jsonStr.StartsWith("```"))
                     {
-                        SourceText = src,
-                        TranslatedText = trans
-                    });
+                        int firstLineEnd = jsonStr.IndexOf('\n');
+                        if (firstLineEnd != -1)
+                        {
+                            jsonStr = jsonStr.Substring(firstLineEnd + 1);
+                        }
+                        if (jsonStr.EndsWith("```"))
+                        {
+                            jsonStr = jsonStr.Substring(0, jsonStr.Length - 3);
+                        }
+                        jsonStr = jsonStr.Trim();
+                    }
+
+                    using (JsonDocument doc = JsonDocument.Parse(jsonStr))
+                    {
+                        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var translatedMap = new Dictionary<int, string>();
+                            int index = 0;
+                            foreach (var element in doc.RootElement.EnumerateArray())
+                            {
+                                int id = -1;
+                                if (element.TryGetProperty("id", out var idProp))
+                                {
+                                    if (idProp.ValueKind == JsonValueKind.Number)
+                                        id = idProp.GetInt32();
+                                    else if (idProp.ValueKind == JsonValueKind.String && int.TryParse(idProp.GetString(), out int parsedId))
+                                        id = parsedId;
+                                }
+
+                                string translation = "";
+                                if (element.TryGetProperty("translation", out var transProp))
+                                    translation = transProp.GetString() ?? "";
+                                else if (element.TryGetProperty("translated", out var transProp2))
+                                    translation = transProp2.GetString() ?? "";
+                                else if (element.TryGetProperty("text", out var transProp3))
+                                    translation = transProp3.GetString() ?? "";
+
+                                if (id < 0)
+                                {
+                                    id = index;
+                                }
+
+                                translatedMap[id] = translation;
+                                index++;
+                            }
+
+                            for (int i = 0; i < originalSentences.Count; i++)
+                            {
+                                string src = originalSentences[i];
+                                string trans = translatedMap.TryGetValue(i, out var t) ? t : string.Empty;
+                                rows.Add(new BatchTranslationRow
+                                {
+                                    SourceText = src,
+                                    TranslatedText = trans
+                                });
+                            }
+                            parsedSuccessfully = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"JSON parsing failed: {ex.Message}. Falling back to line-by-line.");
                 }
 
-                var batchWindow = new BatchTranslationWindow(batchApiName, targetLanguage, rows)
+                if (!parsedSuccessfully)
+                {
+                    var translatedLines = translatedFullText
+                        .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                        .Select(line => line.Trim())
+                        .ToList();
+
+                    int maxCount = Math.Max(originalSentences.Count, translatedLines.Count);
+                    for (int i = 0; i < maxCount; i++)
+                    {
+                        string src = i < originalSentences.Count ? originalSentences[i] : string.Empty;
+                        string trans = i < translatedLines.Count ? translatedLines[i] : string.Empty;
+                        rows.Add(new BatchTranslationRow
+                        {
+                            SourceText = src,
+                            TranslatedText = trans
+                        });
+                    }
+                }
+
+                var batchWindow = new BatchTranslationWindow(batchApiName, "日本語", rows)
                 {
                     Owner = this
                 };

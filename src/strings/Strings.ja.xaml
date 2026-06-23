@@ -86,6 +86,8 @@
     <sys:String x:Key="Prompt">プロンプト</sys:String>
     <sys:String x:Key="PromptNote1">プロンプト内の {0} は翻訳先言語を示します。プロンプトに {0} が含まれていることを確認してください。</sys:String>
     <sys:String x:Key="PromptNote2">翻訳元のテキストは 🔤 で囲まれています。</sys:String>
+    <sys:String x:Key="BatchPrompt">一括翻訳プロンプト</sys:String>
+    <sys:String x:Key="BatchPromptNote">一括翻訳で使用するLLM用のシステムプロンプトです。コンテキストを考慮して流暢に翻訳するために、入力はJSON配列（idとtext）で渡されます。翻訳結果も同じJSON配列の形式（idとtranslation）で返却するように指示してください。JSON以外の説明やマークダウンのコードブロック文字（```jsonなど）を出力しないように指定することを推奨します。</sys:String>
     <sys:String x:Key="CurrentConfigLabel">現在の設定: </sys:String>
     <sys:String x:Key="MinConfigWarning">少なくとも1つの設定を残す必要があります。</sys:String>
     <sys:String x:Key="ButtonLoadModels">モデルの読み込み</sys:String>

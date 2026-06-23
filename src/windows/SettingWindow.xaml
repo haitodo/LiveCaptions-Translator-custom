@@ -206,7 +206,7 @@
                                     FontSize="20"
                                     FontWeight="Medium"
                                     Text="{DynamicResource Prompt}" />
-                                <ui:Card Padding="15">
+                                <ui:Card Padding="15" Margin="0,0,0,20">
                                     <StackPanel Margin="15,0,15,0" Orientation="Vertical">
                                         <ui:TextBlock Margin="2.5,0,0,5" TextWrapping="Wrap">
                                             <Run FontWeight="Bold" Text="Note 1: " />
@@ -219,6 +219,23 @@
                                             AcceptsReturn="True"
                                             ClearButtonEnabled="False"
                                             Text="{Binding Prompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </ui:Card>
+
+                                <ui:TextBlock
+                                    Margin="10,0,10,10"
+                                    FontSize="20"
+                                    FontWeight="Medium"
+                                    Text="{DynamicResource BatchPrompt}" />
+                                <ui:Card Padding="15">
+                                    <StackPanel Margin="15,0,15,0" Orientation="Vertical">
+                                        <ui:TextBlock Margin="2.5,0,0,5" TextWrapping="Wrap" Text="{DynamicResource BatchPromptNote}" />
+                                        <ui:TextBox
+                                            x:Name="BatchPromptTextBox"
+                                            AcceptsReturn="True"
+                                            ClearButtonEnabled="False"
+                                            Text="{Binding BatchPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                 </ui:Card>

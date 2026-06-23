@@ -115,17 +115,7 @@ namespace LiveCaptionsTranslator
             LoadAPISetting();
         }
 
-        private void TargetLangBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (TargetLangBox.SelectedItem != null && Translator.Setting != null)
-                Translator.Setting.TargetLanguage = TargetLangBox.SelectedItem.ToString();
-        }
 
-        private void TargetLangBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (Translator.Setting != null)
-                Translator.Setting.TargetLanguage = TargetLangBox.Text;
-        }
 
         private void APISettingButton_Click(object sender, RoutedEventArgs e)
         {
@@ -156,31 +146,7 @@ namespace LiveCaptionsTranslator
 
         public void LoadAPISetting()
         {
-            if (Translator.Setting == null) return;
-
-            var configType = Translator.Setting[Translator.Setting.ApiName].GetType();
-            var languagesProp = configType.GetProperty(
-                "SupportedLanguages", BindingFlags.Public | BindingFlags.Static);
-
-            // 基底クラスを遡って SupportedLanguages を探索
-            while (configType != null && languagesProp == null)
-            {
-                configType = configType.BaseType;
-                languagesProp = configType.GetProperty(
-                    "SupportedLanguages", BindingFlags.Public | BindingFlags.Static);
-            }
-            if (languagesProp == null)
-                languagesProp = typeof(TranslateAPIConfig).GetProperty(
-                    "SupportedLanguages", BindingFlags.Public | BindingFlags.Static);
-
-            var supportedLanguages = (Dictionary<string, string>)languagesProp.GetValue(null);
-            TargetLangBox.ItemsSource = supportedLanguages.Keys;
-
-            string targetLang = Translator.Setting.TargetLanguage;
-            if (!supportedLanguages.ContainsKey(targetLang))
-                supportedLanguages[targetLang] = targetLang;    // カスタム言語をサポート言語に追加
-
-            TargetLangBox.SelectedItem = targetLang;
+            // 翻訳先言語の選択UI削除に伴い、処理を無効化（常に日本語を使用）
         }
 
         private void PopulateCaptionFontColors()

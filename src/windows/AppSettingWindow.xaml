@@ -307,45 +307,6 @@
                                 </Grid>
                             </ui:Card>
 
-                            <!-- カード: 翻訳先言語 -->
-                            <ui:Card Margin="0,0,0,10" Padding="15">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <ui:TextBlock FontWeight="SemiBold" Text="{DynamicResource LabelTargetLanguage}" />
-                                            <Button
-                                                x:Name="TargetLangInfo"
-                                                Width="16"
-                                                Height="16"
-                                                Margin="5,0,0,0"
-                                                Padding="0"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Focusable="False">
-                                                <Button.ToolTip>
-                                                    <ToolTip MaxWidth="300">
-                                                        <TextBlock TextWrapping="Wrap" Text="{DynamicResource TargetLanguageInfo}" />
-                                                    </ToolTip>
-                                                </Button.ToolTip>
-                                                <ui:SymbolIcon Symbol="Info16" />
-                                            </Button>
-                                        </StackPanel>
-                                        <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,20,0" Text="翻訳先のターゲット言語を指定します。" />
-                                    </StackPanel>
-                                    <ComboBox
-                                        Grid.Column="1"
-                                        x:Name="TargetLangBox"
-                                        Width="160"
-                                        Height="32"
-                                        IsEditable="True"
-                                        LostFocus="TargetLangBox_LostFocus"
-                                        SelectionChanged="TargetLangBox_SelectionChanged" />
-                                </Grid>
-                            </ui:Card>
 
                             <!-- カード: 自動翻訳 -->
                             <ui:Card Margin="0,0,0,10" Padding="15">

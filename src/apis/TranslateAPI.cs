@@ -797,11 +797,24 @@ namespace LiveCaptionsTranslator.apis
             else if (apiName == "LMStudio" && LMStudioConfig.SupportedLanguages.TryGetValue(targetLanguage, out var langValueLMStudio))
                 language = langValueLMStudio;
 
-            string systemPrompt = $"You are a professional translator. Translate the given text into {language}.\n" +
-                "CRITICAL RULE: Translate the text line-by-line. The output MUST contain exactly the same number of lines as the input, " +
-                "with each line corresponding to the translation of the respective line in the input. " +
-                "Do not combine lines, do not split lines differently, do not add line numbers, notes, quotes, or any extra text. " +
-                "Only return the translated lines.";
+            string systemPrompt = Translator.Setting?.BatchPrompt;
+            if (string.IsNullOrEmpty(systemPrompt))
+            {
+                systemPrompt = "You are a professional translator. Translate the following list of sentences into Japanese.\n" +
+                               "The input is provided as a JSON array of objects, where each object has an \"id\" and a \"text\" field representing a sentence in chronological order.\n" +
+                               "Provide a fluent, context-aware, and natural translation, keeping the entire sequence's context in mind.\n" +
+                               "Your response must be a JSON array of objects, where each object contains the original \"id\" and the corresponding \"translation\" field.\n" +
+                               "Ensure that you output ONLY the valid JSON array. Do not include any explanations, markdown code block wrappers (like ```json), or extra text.";
+            }
+
+            if (systemPrompt.Contains("{0}"))
+            {
+                try
+                {
+                    systemPrompt = string.Format(systemPrompt, language);
+                }
+                catch {}
+            }
 
             if (apiName == "OpenAI")
             {
