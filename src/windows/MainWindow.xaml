@@ -9,7 +9,7 @@
     Title="{DynamicResource MainWindowTitle}"
     Width="750"
     Height="170"
-    MinWidth="750"
+    MinWidth="300"
     MinHeight="170"
     Background="Transparent"
     LocationChanged="MainWindow_LocationChanged"
@@ -45,9 +45,7 @@
                 Grid.Row="0"
                 Height="27"
                 ShowMaximize="False">
-                <ui:TitleBar.Header>
-                    <ui:TextBlock Padding="15,0,0,0" VerticalAlignment="Center" Text="{DynamicResource MainWindowTitle}" />
-                </ui:TitleBar.Header>
+
                 <ui:TitleBar.TrailingContent>
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <ui:Button
@@ -118,58 +116,27 @@
                             Icon="{ui:SymbolIcon Pin16,
                                                  Filled=True}"
                             ToolTip="{DynamicResource ToolTipAlwaysOnTop}" />
+                        <ui:Button
+                            x:Name="SettingButton"
+                            Margin="0,0,5,0"
+                            Appearance="Transparent"
+                            Click="SettingButton_Click"
+                            Icon="{ui:SymbolIcon Settings16,
+                                                 Filled=False}"
+                            ToolTip="{DynamicResource NavSetting}" />
                     </StackPanel>
                 </ui:TitleBar.TrailingContent>
             </ui:TitleBar>
 
-            <ui:NavigationView
+            <Frame
                 x:Name="RootNavigation"
                 Grid.Row="1"
-                HeaderVisibility="Collapsed"
-                IsBackButtonVisible="Collapsed"
-                IsPaneOpen="False"
-                IsPaneToggleVisible="False"
-                PaneDisplayMode="LeftMinimal">
-                <ui:NavigationView.MenuItems>
-                    <ui:NavigationViewItem
-                        Margin="0,6,0,3"
-                        Content="{DynamicResource NavCaption}"
-                        FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon Home24}"
-                        NavigationCacheMode="Enabled"
-                        TargetPageType="{x:Type local:CaptionPage}" />
-                    <ui:NavigationViewItem
-                        x:Name="NavSettingItem"
-                        Margin="0,3,0,0"
-                        Content="{DynamicResource NavSetting}"
-                        FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon Settings24}"
-                        Click="NavSettingItem_Click" />
-                    <ui:NavigationViewItem
-                        Margin="0,3,0,0"
-                        Content="{DynamicResource NavHistory}"
-                        FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon History24}"
-                        NavigationCacheMode="Disabled"
-                        TargetPageType="{x:Type local:HistoryPage}" />
-                    <ui:NavigationViewItem
-                        Margin="0,3,0,0"
-                        Content="{DynamicResource NavInfo}"
-                        FontFamily="Bahnschrift"
-                        Icon="{ui:SymbolIcon Info24}"
-                        NavigationCacheMode="Required"
-                        TargetPageType="{x:Type local:InfoPage}" />
-                </ui:NavigationView.MenuItems>
-
-                <ui:NavigationView.ContentOverlay>
-                    <Grid>
-                        <ui:SnackbarPresenter
-                            x:Name="snackbarHost"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom" />
-                    </Grid>
-                </ui:NavigationView.ContentOverlay>
-            </ui:NavigationView>
+                NavigationUIVisibility="Hidden" />
+            <ui:SnackbarPresenter
+                x:Name="snackbarHost"
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom" />
         </Grid>
         </Border>
         <ContentPresenter

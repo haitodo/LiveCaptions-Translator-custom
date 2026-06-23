@@ -24,8 +24,7 @@
     <sys:String x:Key="ToolTipClearTranslations">翻訳テキストをクリア (Ctrl+Shift+C)</sys:String>
     <sys:String x:Key="NavCaption">字幕</sys:String>
     <sys:String x:Key="NavSetting">設定</sys:String>
-    <sys:String x:Key="NavHistory">履歴</sys:String>
-    <sys:String x:Key="NavInfo">情報</sys:String>
+
     
     <!-- Update Check -->
     <sys:String x:Key="UpdateTitle">新しいバージョンが利用可能です</sys:String>
@@ -39,23 +38,7 @@
     <sys:String x:Key="ToolTipClickToCopy">クリックしてコピー</sys:String>
     <sys:String x:Key="ToolTipTranslateNow">今すぐ翻訳 (Ctrl+Shift+T)</sys:String>
 
-    <!-- HistoryPage -->
-    <sys:String x:Key="ToolTipPreviousPage">前のページ</sys:String>
-    <sys:String x:Key="ToolTipNextPage">次のページ</sys:String>
-    <sys:String x:Key="PlaceholderSearch">検索</sys:String>
-    <sys:String x:Key="ToolTipExport">エクスポート</sys:String>
-    <sys:String x:Key="ToolTipDeleteAll">すべて削除</sys:String>
-    <sys:String x:Key="ToolTipRefresh">更新</sys:String>
-    <sys:String x:Key="HeaderTime">時間</sys:String>
-    <sys:String x:Key="HeaderCaption">原文</sys:String>
-    <sys:String x:Key="HeaderTranslated">翻訳</sys:String>
-    <sys:String x:Key="HeaderAPI">API</sys:String>
-    <sys:String x:Key="DeleteHistoryTitle">すべての履歴を削除しますか？</sys:String>
-    <sys:String x:Key="DeleteHistoryContent">この操作は取り消せません！</sys:String>
-    <sys:String x:Key="ExportSuccessTitle">保存成功</sys:String>
-    <sys:String x:Key="ExportSuccessContent">ファイルを保存しました: {0}</sys:String>
-    <sys:String x:Key="ExportFailedTitle">保存失敗</sys:String>
-    <sys:String x:Key="ExportFailedContent">ファイルの保存に失敗しました: {0}</sys:String>
+
 
     <!-- SettingPage -->
     <sys:String x:Key="LabelLiveCaptions">LiveCaptions</sys:String>
@@ -84,13 +67,7 @@
     <sys:String x:Key="LabelThreshold">しきい値 (文字数)</sys:String>
     <sys:String x:Key="LabelUILanguage">UI 言語</sys:String>
 
-    <!-- InfoPage -->
-    <sys:String x:Key="InfoContribution">どのような形での貢献も大歓迎です！バグ報告や改善の提案は GitHub issues まで、コードでの貢献は Pull Requests を直接送信してください。&#x0A;もしこのプログラムがお役に立ちましたら、ぜひ GitHub スター ✨ をお願いいたします！</sys:String>
-    <sys:String x:Key="InfoRepository">リポジトリ:</sys:String>
-    <sys:String x:Key="InfoWiki">Wiki:</sys:String>
-    <sys:String x:Key="InfoMaintainer">メンテナー:</sys:String>
-    <sys:String x:Key="InfoAuthor">著者</sys:String>
-    <sys:String x:Key="InfoVersion">バージョン:</sys:String>
+
 
     <!-- WelcomeWindow -->
     <sys:String x:Key="WelcomeTitle">はじめに</sys:String>
@@ -142,7 +119,7 @@
     <sys:String x:Key="LabelLineSpacingOriginalTranslated">翻訳前後の行間 (px)</sys:String>
     <sys:String x:Key="LabelLineHeightMultiplier">複数行の行間 (倍率)</sys:String>
     <sys:String x:Key="LabelItemSpacing">ホーム画面のカード間隔 (px)</sys:String>
-    <sys:String x:Key="LabelHistoryItemSpacing">履歴の間隔 (px)</sys:String>
+
     <sys:String x:Key="ToolTipLiveCaptions">Windows Live Captions の表示/非表示</sys:String>
 
     <!-- Colors -->

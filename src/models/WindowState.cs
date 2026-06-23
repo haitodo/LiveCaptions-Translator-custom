@@ -23,7 +23,6 @@ namespace LiveCaptionsTranslator.models
         private int lineSpacingOriginalTranslated = 3;
         private double lineHeightMultiplier = 1.25;
         private int itemSpacing = 6;
-        private int historyItemSpacing = 6;
 
         public bool Topmost
         {
@@ -149,15 +148,7 @@ namespace LiveCaptionsTranslator.models
             }
         }
 
-        public int HistoryItemSpacing
-        {
-            get => historyItemSpacing;
-            set
-            {
-                historyItemSpacing = value;
-                OnPropertyChanged("HistoryItemSpacing");
-            }
-        }
+
 
         [System.Text.Json.Serialization.JsonIgnore]
         public int CaptionFontSizeOriginal => Math.Max(8, captionFontSize - 3);

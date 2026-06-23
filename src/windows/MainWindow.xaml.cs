@@ -29,7 +29,7 @@ namespace LiveCaptionsTranslator
             {
                 SystemThemeWatcher.Watch(this, WindowBackdropType.None, false);
                 this.Background = System.Windows.Media.Brushes.Transparent;
-                RootNavigation.Navigate(typeof(CaptionPage));
+                RootNavigation.Navigate(new CaptionPage());
                 CheckForFirstUse();
                 CheckForUpdates();
                 UpdateLiveCaptionsButtonState();
@@ -182,12 +182,8 @@ namespace LiveCaptionsTranslator
             }, System.Windows.Threading.DispatcherPriority.Background);
         }
 
-        private void NavSettingItem_Click(object sender, RoutedEventArgs e)
+        private void SettingButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is NavigationViewItem item)
-            {
-                item.IsActive = false;
-            }
             OpenAppSettingWindow();
         }
 
