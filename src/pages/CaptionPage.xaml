@@ -8,6 +8,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="CaptionPage"
     JournalEntry.KeepAlive="True"
+    Background="Transparent"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -18,127 +19,131 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="12,12,12,12">
-        <ScrollViewer x:Name="CaptionPageScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ScrollChanged="CaptionPageScrollViewer_ScrollChanged">
-            <Grid MinHeight="{Binding RelativeSource={RelativeSource AncestorType=ScrollViewer}, Path=ViewportHeight}">
-                <Grid.RowDefinitions>
-                    <RowDefinition x:Name="CaptionLogCard_Row" Height="*" />
-                    <RowDefinition x:Name="OriginalCaption_Row" Height="Auto" />
-                    <RowDefinition x:Name="TranslatedCaption_Row" Height="Auto" />
-                </Grid.RowDefinitions>
+    <!--
+        重要: ScrollViewerの中に Height="*" の行を含むGridを置くと、
+        "*"行はScrollViewer内で高さ0になり、コンテンツがScrollViewerをオーバーフローしない。
+        そのためすべてAuto高さのStackPanelで積み上げる構造にする。
+    -->
+    <ScrollViewer
+        x:Name="CaptionPageScrollViewer"
+        Margin="12,12,12,12"
+        Background="Transparent"
+        HorizontalScrollBarVisibility="Disabled"
+        ScrollChanged="CaptionPageScrollViewer_ScrollChanged"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical">
 
-                <ui:Card
-                    x:Name="LogCards"
-                    Grid.Row="0"
-                    Margin="0,0,0,0"
-                    Padding="8"
-                    VerticalAlignment="Stretch"
-                    Background="Transparent"
-                    BorderBrush="#00000000">
-                    <ItemsControl
-                        x:Name="LogCardItems"
-                        MinHeight="50"
-                        ItemsSource="{Binding DisplayLogCards, UpdateSourceTrigger=PropertyChanged}"
-                        VirtualizingPanel.IsVirtualizing="True">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border
-                                    Margin="0,0,0,8"
-                                    Padding="12,10,12,10"
-                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                    CornerRadius="6">
-                                    <StackPanel Orientation="Vertical">
-                                        <TextBlock
-                                            x:Name="OriginalCaptionLog"
-                                            Background="Transparent"
-                                            Cursor="Hand"
-                                            FontSize="12.5"
-                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                                            Style="{StaticResource CaptionBlockStyle}"
-                                            Text="{Binding SourceText}"
-                                            ToolTip="{DynamicResource ToolTipClickToCopy}"
-                                            Visibility="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption, Converter={StaticResource BoolToVis}}" />
-                                        <TextBlock
-                                            x:Name="TranslatedCaptionLog"
-                                            Background="Transparent"
-                                            Cursor="Hand"
-                                            FontSize="15.5"
-                                            FontWeight="SemiBold"
-                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                            MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                                            Text="{Binding TranslatedText}"
-                                            ToolTip="{DynamicResource ToolTipClickToCopy}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionBlockStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption}" Value="True">
-                                                            <Setter Property="Margin" Value="0,4,0,0" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ui:Card>
+            <!-- ログカードリスト（CaptionLogEnabled=trueの時のみ表示） -->
+            <ui:Card
+                x:Name="LogCards"
+                Margin="0,0,0,0"
+                Padding="8"
+                Background="Transparent"
+                BorderBrush="#00000000"
+                Visibility="Collapsed">
+                <ItemsControl
+                    x:Name="LogCardItems"
+                    MinHeight="50"
+                    ItemsSource="{Binding DisplayLogCards, UpdateSourceTrigger=PropertyChanged}"
+                    VirtualizingPanel.IsVirtualizing="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Margin="0,0,0,8"
+                                Padding="12,10,12,10"
+                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock
+                                        x:Name="OriginalCaptionLog"
+                                        Background="Transparent"
+                                        Cursor="Hand"
+                                        FontSize="12.5"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                                        Style="{StaticResource CaptionBlockStyle}"
+                                        Text="{Binding SourceText}"
+                                        ToolTip="{DynamicResource ToolTipClickToCopy}"
+                                        Visibility="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption, Converter={StaticResource BoolToVis}}" />
+                                    <TextBlock
+                                        x:Name="TranslatedCaptionLog"
+                                        Background="Transparent"
+                                        Cursor="Hand"
+                                        FontSize="15.5"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                                        Text="{Binding TranslatedText}"
+                                        ToolTip="{DynamicResource ToolTipClickToCopy}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionBlockStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Source={x:Static local:Translator.Setting}, Path=MainWindow.ShowOriginalCaption}" Value="True">
+                                                        <Setter Property="Margin" Value="0,4,0,0" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ui:Card>
 
-                <ui:Card
-                    x:Name="OriginalCaptionCard"
-                    Grid.Row="1"
-                    Margin="0,0,0,6"
-                    Padding="8"
-                    VerticalAlignment="Stretch">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            x:Name="OriginalCaption"
-                            Background="Transparent"
-                            Cursor="Hand"
-                            FontSize="15"
-                            MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                            Style="{StaticResource CaptionBlockStyle}"
-                            Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
-                            ToolTip="{DynamicResource ToolTipClickToCopy}" />
-                        <ui:Button
-                            Grid.Column="1"
-                            x:Name="ManualTranslateButton"
-                            Margin="5,0,0,0"
-                            Padding="6,4"
-                            VerticalAlignment="Center"
-                            Click="ManualTranslateButton_Click"
-                            Icon="{ui:SymbolIcon Translate24}"
-                            ToolTip="{DynamicResource ToolTipTranslateNow}" />
-                    </Grid>
-                </ui:Card>
-
-                <ui:Card
-                    x:Name="TranslatedCaptionCard"
-                    Grid.Row="2"
-                    MinHeight="43"
-                    Margin="0,0,0,8"
-                    Padding="8"
-                    VerticalAlignment="Stretch">
+            <!-- 原文カード（自動翻訳OFF時または ShowOriginalCaption=true時に表示） -->
+            <ui:Card
+                x:Name="OriginalCaptionCard"
+                Margin="0,0,0,6"
+                Padding="8"
+                Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <TextBlock
-                        x:Name="TranslatedCaption"
+                        Grid.Column="0"
+                        x:Name="OriginalCaption"
                         Background="Transparent"
                         Cursor="Hand"
-                        FontSize="18"
+                        FontSize="15"
                         MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
                         Style="{StaticResource CaptionBlockStyle}"
-                        Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
+                        Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
                         ToolTip="{DynamicResource ToolTipClickToCopy}" />
-                </ui:Card>
-            </Grid>
-        </ScrollViewer>
-    </Grid>
+                    <ui:Button
+                        Grid.Column="1"
+                        x:Name="ManualTranslateButton"
+                        Margin="5,0,0,0"
+                        Padding="6,4"
+                        VerticalAlignment="Center"
+                        Click="ManualTranslateButton_Click"
+                        Icon="{ui:SymbolIcon Translate24}"
+                        ToolTip="{DynamicResource ToolTipTranslateNow}" />
+                </Grid>
+            </ui:Card>
+
+            <!-- 翻訳済みテキストカード（常に最下部） -->
+            <ui:Card
+                x:Name="TranslatedCaptionCard"
+                MinHeight="43"
+                Margin="0,0,0,8"
+                Padding="8">
+                <TextBlock
+                    x:Name="TranslatedCaption"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    FontSize="18"
+                    MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                    Style="{StaticResource CaptionBlockStyle}"
+                    Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="{DynamicResource ToolTipClickToCopy}" />
+            </ui:Card>
+
+        </StackPanel>
+    </ScrollViewer>
 </Page>

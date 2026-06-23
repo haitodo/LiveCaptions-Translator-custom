@@ -1,6 +1,8 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Input;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -40,6 +42,23 @@ namespace LiveCaptionsTranslator
             ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
             UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
             UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
+
+            // 設定値の変更を監視し、UI表示を常にモデルと同期させる
+            if (Translator.Setting != null && Translator.Setting.MainWindow != null)
+            {
+                Translator.Setting.MainWindow.PropertyChanged += MainWindowSetting_PropertyChanged;
+            }
+
+            PreviewMouseWheel += MainWindow_PreviewMouseWheel;
+
+            Closed += (s, e) =>
+            {
+                PreviewMouseWheel -= MainWindow_PreviewMouseWheel;
+                if (Translator.Setting != null && Translator.Setting.MainWindow != null)
+                {
+                    Translator.Setting.MainWindow.PropertyChanged -= MainWindowSetting_PropertyChanged;
+                }
+            };
         }
 
         private void TopmostButton_Click(object sender, RoutedEventArgs e)
@@ -104,9 +123,10 @@ namespace LiveCaptionsTranslator
 
         private void CaptionLogButton_Click(object sender, RoutedEventArgs e)
         {
-            Translator.Setting.MainWindow.CaptionLogEnabled = !Translator.Setting.MainWindow.CaptionLogEnabled;
-            ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
-            CaptionPage.Instance?.AutoHeight();
+            if (Translator.Setting?.MainWindow != null)
+            {
+                Translator.Setting.MainWindow.CaptionLogEnabled = !Translator.Setting.MainWindow.CaptionLogEnabled;
+            }
         }
 
         private void MainWindow_LocationChanged(object sender, EventArgs e)
@@ -125,9 +145,12 @@ namespace LiveCaptionsTranslator
         {
             var button = TopmostButton as Button;
             var symbolIcon = button?.Icon as SymbolIcon;
-            symbolIcon.Filled = enabled;
+            if (symbolIcon != null) symbolIcon.Filled = enabled;
             this.Topmost = enabled;
-            Translator.Setting.MainWindow.Topmost = enabled;
+            if (Translator.Setting?.MainWindow != null && Translator.Setting.MainWindow.Topmost != enabled)
+            {
+                Translator.Setting.MainWindow.Topmost = enabled;
+            }
         }
 
         private void CheckForFirstUse()
@@ -225,8 +248,10 @@ namespace LiveCaptionsTranslator
 
         private void ShowOriginalButton_Click(object sender, RoutedEventArgs e)
         {
-            Translator.Setting.MainWindow.ShowOriginalCaption = !Translator.Setting.MainWindow.ShowOriginalCaption;
-            UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
+            if (Translator.Setting?.MainWindow != null)
+            {
+                Translator.Setting.MainWindow.ShowOriginalCaption = !Translator.Setting.MainWindow.ShowOriginalCaption;
+            }
         }
 
         public void UpdateShowOriginalButton(bool enabled)
@@ -248,14 +273,18 @@ namespace LiveCaptionsTranslator
 
         private void AutoScrollButton_Click(object sender, RoutedEventArgs e)
         {
-            Translator.Setting.MainWindow.AutoScrollEnabled = !Translator.Setting.MainWindow.AutoScrollEnabled;
-            UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
+            if (Translator.Setting?.MainWindow != null)
+            {
+                Translator.Setting.MainWindow.AutoScrollEnabled = !Translator.Setting.MainWindow.AutoScrollEnabled;
+            }
         }
 
         public void UpdateAutoScrollButton(bool enabled)
         {
             if (AutoScrollButton.Icon is SymbolIcon icon)
             {
+                AutoScrollButton.Appearance = enabled ? ControlAppearance.Primary : ControlAppearance.Transparent;
+
                 if (enabled)
                 {
                     icon.Symbol = SymbolRegular.ArrowDown24;
@@ -269,6 +298,54 @@ namespace LiveCaptionsTranslator
             }
         }
 
+        // 各設定プロパティ変更時のイベントハンドラ（UI表示を一元更新する）
+        private void MainWindowSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Translator.Setting?.MainWindow == null) return;
+
+            if (e.PropertyName == nameof(Translator.Setting.MainWindow.AutoScrollEnabled))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.ShowOriginalCaption))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.CaptionLogEnabled))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
+                        CaptionPage.Instance?.AutoHeight();
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.Topmost))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        ToggleTopmost(Translator.Setting.MainWindow.Topmost);
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
         public void AutoHeightAdjust(int minHeight = -1, int maxHeight = -1)
         {
             if (minHeight > 0 && Height < minHeight)
@@ -279,6 +356,30 @@ namespace LiveCaptionsTranslator
 
             if (IsAutoHeight && maxHeight > 0 && Height > maxHeight)
                 Height = maxHeight;
+        }
+
+        // ホーム画面（CaptionPage）のアクティブ時にマウスホイールスクロールを強制的に制御する
+        private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (CaptionPage.Instance != null && CaptionPage.Instance.IsLoaded)
+            {
+                var scrollViewer = CaptionPage.Instance.CaptionPageScrollViewer;
+                if (scrollViewer != null)
+                {
+                    // マウスホイールの回転量に応じてスクロール量を決定
+                    int lines = Math.Abs(e.Delta) / 40;
+                    if (lines == 0) lines = 1;
+
+                    for (int i = 0; i < lines; i++)
+                    {
+                        if (e.Delta > 0)
+                            scrollViewer.LineUp();
+                        else
+                            scrollViewer.LineDown();
+                    }
+                    e.Handled = true;
+                }
+            }
         }
     }
 }
