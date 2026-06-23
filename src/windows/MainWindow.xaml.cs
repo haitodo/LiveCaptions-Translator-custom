@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices; // 追加：Win32 API呼び出しのために必要
 using System.Text.Json;
+using System.Text.Json.Serialization; // 追加：JsonPropertyNameやデシリアライズ関連
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -530,54 +531,23 @@ namespace LiveCaptionsTranslator
                 {
                     try
                     {
-                        string jsonStr = translatedFullText.Trim();
-                        if (jsonStr.StartsWith("```"))
+                        string rawResponse = translatedFullText.Trim();
+                        // マークダウン記号や前後の余計なテキストを排除し、JSON配列部分のみを抽出する
+                        string jsonStr = ExtractJsonArray(rawResponse);
+
+                        if (!string.IsNullOrEmpty(jsonStr))
                         {
-                            int firstLineEnd = jsonStr.IndexOf('\n');
-                            if (firstLineEnd != -1)
+                            var options = new JsonSerializerOptions
                             {
-                                jsonStr = jsonStr.Substring(firstLineEnd + 1);
-                            }
-                            if (jsonStr.EndsWith("```"))
+                                PropertyNameCaseInsensitive = true
+                            };
+
+                            // Setting.cs で定義されている DTO クラスを用いて安全にデシリアライズする
+                            var translatedItems = JsonSerializer.Deserialize<List<BatchTranslationItem>>(jsonStr, options);
+
+                            if (translatedItems != null && translatedItems.Count > 0)
                             {
-                                jsonStr = jsonStr.Substring(0, jsonStr.Length - 3);
-                            }
-                            jsonStr = jsonStr.Trim();
-                        }
-
-                        using (JsonDocument doc = JsonDocument.Parse(jsonStr))
-                        {
-                            if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                            {
-                                var translatedMap = new Dictionary<int, string>();
-                                int index = 0;
-                                foreach (var element in doc.RootElement.EnumerateArray())
-                                {
-                                    int id = -1;
-                                    if (element.TryGetProperty("id", out var idProp))
-                                    {
-                                        if (idProp.ValueKind == JsonValueKind.Number)
-                                            id = idProp.GetInt32();
-                                        else if (idProp.ValueKind == JsonValueKind.String && int.TryParse(idProp.GetString(), out int parsedId))
-                                            id = parsedId;
-                                    }
-
-                                    string translation = "";
-                                    if (element.TryGetProperty("translation", out var transProp))
-                                        translation = transProp.GetString() ?? "";
-                                    else if (element.TryGetProperty("translated", out var transProp2))
-                                        translation = transProp2.GetString() ?? "";
-                                    else if (element.TryGetProperty("text", out var transProp3))
-                                        translation = transProp3.GetString() ?? "";
-
-                                    if (id < 0)
-                                    {
-                                        id = index;
-                                    }
-
-                                    translatedMap[id] = translation;
-                                    index++;
-                                }
+                                var translatedMap = translatedItems.ToDictionary(item => item.Id, item => item.GetResult());
 
                                 for (int i = 0; i < originalSentences.Count; i++)
                                 {
@@ -642,6 +612,23 @@ namespace LiveCaptionsTranslator
                 Cursor = Cursors.Arrow;
                 BatchTranslateButton.IsEnabled = true;
             }
+        }
+
+        /// <summary>
+        /// 文字列から最初に見つかる '[' と、最後に見つかる ']' の範囲（JSON配列）を抽出します。
+        /// </summary>
+        private string ExtractJsonArray(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+
+            int startIndex = input.IndexOf('[');
+            int endIndex = input.LastIndexOf(']');
+
+            if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
+            {
+                return input.Substring(startIndex, endIndex - startIndex + 1);
+            }
+            return input;
         }
     }
 }

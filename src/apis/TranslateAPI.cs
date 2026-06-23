@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 
 using LiveCaptionsTranslator.models;
 using LiveCaptionsTranslator.utils;
@@ -161,7 +167,7 @@ namespace LiveCaptionsTranslator.apis
                     ]);
                 }
             }
-            
+
             var requestData = LLMRequestDataFactory.Create("Ollama", config.ModelName, messages, config.Temperature);
             requestData.keep_alive = config.keep_alive;
             string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
@@ -804,11 +810,24 @@ namespace LiveCaptionsTranslator.apis
             string systemPrompt = Translator.Setting?.BatchPrompt;
             if (string.IsNullOrEmpty(systemPrompt))
             {
-                systemPrompt = "あなたはプロの翻訳者です。以下の文章リストを日本語に翻訳してください。\n" +
-                               "入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
-                               "文脈を考慮し、一連の流れが自然で流暢な日本語になるように翻訳してください。\n" +
-                               "出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つJSON配列のオブジェクト形式でなければなりません。\n" +
-                               "必ず有効なJSON配列のみを出力してください。説明や、マークダウンのコードブロックのラッパー（```jsonなど）、その他の余計なテキストは一切含めないでください。";
+                systemPrompt = "あなたは映画や動画、フリートークのニュアンスを完璧に捉えるプロの翻訳者です。以下の音声認識（文字起こし）による文章リストを、自然な日本語に翻訳してください。\n\n" +
+                               "【翻訳ルール】\n" +
+                               "1. 堅苦しい直訳は避け、話者の「言い方」「感情」「ニュアンス」「カジュアルさ」をできるだけそのまま生かした、自然な日本語（話し言葉・会話表現）に翻訳してください。過度に丁寧な表現（不自然な「です・ます調」）にする必要はありません。\n" +
+                               "2. 文字起こし特有の言い淀み（\"um\", \"ah\", \"like\" など）や、直後の言い直しによる重複は、日本語として最も自然に聞こえるようにうまく補完・省略して翻訳してください。\n" +
+                               "3. 入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順 of の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                               "4. 出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つ、有効なJSON配列形式のみとしてください。\n" +
+                               "5. 余計な説明、挨拶、マークダウンのコードブロック（```json など）は絶対に含めず、純粋なJSON配列のみを返却してください。\n\n" +
+                               "【翻訳例 (Few-Shot)】\n" +
+                               "入力:\n" +
+                               "[\n" +
+                               "  { \"id\": 0, \"text\": \"Yeah, so... I was thinking, like, maybe we could...\" },\n" +
+                               "  { \"id\": 1, \"text\": \"maybe we could try this new restaurant, you know?\" }\n" +
+                               "]\n" +
+                               "出力:\n" +
+                               "[\n" +
+                               "  { \"id\": 0, \"translation\": \"それでさ… なんか、もしかしたら…って思ったんだけど、\" },\n" +
+                               "  { \"id\": 1, \"translation\": \"あの新しいレストラン、行ってみない？\" }\n" +
+                               "]";
             }
 
             if (systemPrompt.Contains("{0}"))
@@ -817,7 +836,7 @@ namespace LiveCaptionsTranslator.apis
                 {
                     systemPrompt = string.Format(systemPrompt, language);
                 }
-                catch {}
+                catch { }
             }
 
             if (apiName == "OpenAI")
