@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices; // 追加：Win32 API呼び出しのために必要
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Linq;
-using System.Text.Json;
+using System.Windows.Interop; // 追加：WindowInteropHelperのために必要
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -21,12 +26,23 @@ namespace LiveCaptionsTranslator
         public bool IsAutoHeight { get; set; } = true;
         private static AppSettingWindow? _appSettingWindow;
 
+        #region Win32 API Definitions (Aero Snapの無効化用)
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        private const int GWL_STYLE = -16;
+        private const int WS_MAXIMIZEBOX = 0x00010000;
+
+        #endregion
+
         public MainWindow()
         {
             InitializeComponent();
             ApplicationThemeManager.ApplySystemTheme();
-
-
 
             Loaded += (s, e) =>
             {
@@ -70,6 +86,27 @@ namespace LiveCaptionsTranslator
             };
         }
 
+        /// <summary>
+        /// ウィンドウのネイティブハンドル初期化時に、Aero Snap（自動最大化機能）をスタイルから除外します。
+        /// </summary>
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            try
+            {
+                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                int style = GetWindowLong(hwnd, GWL_STYLE);
+
+                // 最大化ボックス（Aero Snap動作）のスタイルビットを取り除く
+                SetWindowLong(hwnd, GWL_STYLE, style & ~WS_MAXIMIZEBOX);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to disable Aero Snap: {ex.Message}");
+            }
+        }
+
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             Translator.ClearAllCaptions();
@@ -79,8 +116,6 @@ namespace LiveCaptionsTranslator
         {
             ToggleTopmost(!this.Topmost);
         }
-
-
 
         private void LogOnlyButton_Click(object sender, RoutedEventArgs e)
         {
@@ -104,7 +139,7 @@ namespace LiveCaptionsTranslator
                     icon.Filled = true;
                     LogOnlyButton.Appearance = ControlAppearance.Primary;
                     LogOnlyButton.ToolTip = Application.Current.TryFindResource("ToolTipResumeTranslation") as string ?? "翻訳を再開";
-                    
+
                     string baseTitle = Application.Current.TryFindResource("MainWindowTitle") as string ?? "LiveCaptions Translator";
                     string pausedText = Application.Current.TryFindResource("Paused") as string ?? "[一時停止中]";
                     this.Title = $"{baseTitle} {pausedText}";
@@ -115,13 +150,11 @@ namespace LiveCaptionsTranslator
                     icon.Filled = false;
                     LogOnlyButton.Appearance = ControlAppearance.Transparent;
                     LogOnlyButton.ToolTip = Application.Current.TryFindResource("ToolTipPauseTranslation") as string ?? "翻訳を一時停止 (ログのみ)";
-                    
+
                     this.Title = Application.Current.TryFindResource("MainWindowTitle") as string ?? "LiveCaptions Translator";
                 }
             }
         }
-
-
 
         private void MainWindow_LocationChanged(object sender, EventArgs e)
         {
@@ -304,7 +337,6 @@ namespace LiveCaptionsTranslator
             }
         }
 
-        // 各設定プロパティ変更時のイベントハンドラ（UI表示を一元更新する）
         private void MainWindowSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (Translator.Setting?.MainWindow == null) return;
@@ -365,7 +397,6 @@ namespace LiveCaptionsTranslator
                 Height = maxHeight;
         }
 
-        // ホーム画面（CaptionPage）のアクティブ時にマウスホイールスクロールを強制的に制御する
         private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (CaptionPage.Instance != null && CaptionPage.Instance.IsVisible)
@@ -373,7 +404,6 @@ namespace LiveCaptionsTranslator
                 var scrollViewer = CaptionPage.Instance.CaptionPageScrollViewer;
                 if (scrollViewer != null)
                 {
-                    // マウスホイールの回転量に応じてスクロール量を決定
                     int lines = Math.Abs(e.Delta) / 40;
                     if (lines == 0) lines = 1;
 
