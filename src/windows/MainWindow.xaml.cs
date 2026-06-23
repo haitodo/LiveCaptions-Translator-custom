@@ -14,7 +14,6 @@ namespace LiveCaptionsTranslator
 {
     public partial class MainWindow : Window
     {
-        public OverlayWindow? OverlayWindow { get; set; } = null;
         public bool IsAutoHeight { get; set; } = true;
         private static AppSettingWindow? _appSettingWindow;
 
@@ -76,41 +75,7 @@ namespace LiveCaptionsTranslator
             ToggleTopmost(!this.Topmost);
         }
 
-        private void OverlayModeButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var symbolIcon = button?.Icon as SymbolIcon;
 
-            if (OverlayWindow == null)
-            {
-                symbolIcon.Symbol = SymbolRegular.ClosedCaption24;
-                symbolIcon.Filled = true;
-
-                OverlayWindow = new OverlayWindow();
-                OverlayWindow.SizeChanged +=
-                    (s, e) => WindowHandler.SaveState(OverlayWindow, Translator.Setting);
-                OverlayWindow.LocationChanged +=
-                    (s, e) => WindowHandler.SaveState(OverlayWindow, Translator.Setting);
-
-                double screenWidth = SystemParameters.PrimaryScreenWidth;
-                double screenHeight = SystemParameters.PrimaryScreenHeight;
-
-                var windowState = WindowHandler.LoadState(OverlayWindow, Translator.Setting);
-                var defaultBounds = new Rect((screenWidth - 650) / 2, screenHeight * 5 / 6 - 135, 650, 135);
-                var validatedState = WindowHandler.ValidateAndAdjustBounds(windowState, defaultBounds);
-                WindowHandler.RestoreState(OverlayWindow, validatedState);
-
-                OverlayWindow.Show();
-            }
-            else
-            {
-                symbolIcon.Symbol = SymbolRegular.ClosedCaptionOff24;
-                symbolIcon.Filled = false;
-
-                OverlayWindow.Close();
-                OverlayWindow = null;
-            }
-        }
 
         private void LogOnlyButton_Click(object sender, RoutedEventArgs e)
         {
@@ -131,14 +96,7 @@ namespace LiveCaptionsTranslator
             Translator.ClearContexts();
         }
 
-        private void CaptionLogButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (Translator.Setting?.MainWindow != null)
-            {
-                IsAutoHeight = true;
-                Translator.Setting.MainWindow.CaptionLogEnabled = !Translator.Setting.MainWindow.CaptionLogEnabled;
-            }
-        }
+
 
         private void MainWindow_LocationChanged(object sender, EventArgs e)
         {
@@ -266,14 +224,7 @@ namespace LiveCaptionsTranslator
 
         public void ShowLogCard(bool enabled)
         {
-            if (CaptionLogButton.Icon is SymbolIcon icon)
-            {
-                if (enabled)
-                    icon.Symbol = SymbolRegular.History24;
-                else
-                    icon.Symbol = SymbolRegular.HistoryDismiss24;
-                CaptionPage.Instance?.CollapseTranslatedCaption(enabled);
-            }
+            CaptionPage.Instance?.CollapseTranslatedCaption(enabled);
         }
 
         private void ShowOriginalButton_Click(object sender, RoutedEventArgs e)

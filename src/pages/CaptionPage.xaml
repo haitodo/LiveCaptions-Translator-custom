@@ -50,7 +50,7 @@
                 Visibility="Collapsed">
                 <ItemsControl
                     x:Name="LogCardItems"
-                    MinHeight="50"
+                    MinHeight="20"
                     ItemsSource="{Binding DisplayLogCards, UpdateSourceTrigger=PropertyChanged}"
                     VirtualizingPanel.IsVirtualizing="False">
                     <ItemsControl.ItemTemplate>

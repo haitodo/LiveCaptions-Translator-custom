@@ -10,7 +10,7 @@
     Width="750"
     Height="170"
     MinWidth="300"
-    MinHeight="170"
+    MinHeight="60"
     Background="Transparent"
     LocationChanged="MainWindow_LocationChanged"
     ResizeMode="CanResizeWithGrip"
@@ -75,15 +75,7 @@
                                                  Filled=False}"
                             ToolTip="{DynamicResource ToolTipShowOriginal}"
                             Visibility="Collapsed" />
-                        <ui:Button
-                            x:Name="CaptionLogButton"
-                            Margin="0,0,5,0"
-                            Appearance="Transparent"
-                            Click="CaptionLogButton_Click"
-                            Icon="{ui:SymbolIcon History16,
-                                                 Filled=False}"
-                            ToolTip="{DynamicResource ToolTipLogCards}"
-                            Visibility="Collapsed" />
+
                         <ui:Button
                             x:Name="LogOnlyButton"
                             Margin="0,0,5,0"
@@ -100,14 +92,7 @@
                             Icon="{ui:SymbolIcon Live24,
                                                  Filled=False}"
                             ToolTip="{DynamicResource ToolTipLiveCaptions}" />
-                        <ui:Button
-                            x:Name="OverlayModeButton"
-                            Margin="0,0,5,0"
-                            Appearance="Transparent"
-                            Click="OverlayModeButton_Click"
-                            Icon="{ui:SymbolIcon ClosedCaptionOff24,
-                                                 Filled=False}"
-                            ToolTip="{DynamicResource ToolTipOverlayWindow}" />
+
                         <ui:Button
                             x:Name="TopmostButton"
                             Margin="0,0,5,0"
@@ -141,7 +126,6 @@
         </Border>
         <ContentPresenter
             x:Name="DialogHostContainer"
-            MinHeight="167"
             Visibility="Collapsed" />
     </Grid>
 </Window>

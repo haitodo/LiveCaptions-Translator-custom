@@ -33,7 +33,6 @@ namespace LiveCaptionsTranslator
                 var mainWindow = App.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
-                    mainWindow.CaptionLogButton.Visibility = Visibility.Visible;
                     mainWindow.ShowOriginalButton.Visibility = Visibility.Visible;
                     mainWindow.AutoScrollButton.Visibility = Visibility.Visible;
                     mainWindow.ClearButton.Visibility = Visibility.Visible;
@@ -75,7 +74,6 @@ namespace LiveCaptionsTranslator
                 var mainWindow = App.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
-                    mainWindow.CaptionLogButton.Visibility = Visibility.Collapsed;
                     mainWindow.ShowOriginalButton.Visibility = Visibility.Collapsed;
                     mainWindow.AutoScrollButton.Visibility = Visibility.Collapsed;
                     mainWindow.ClearButton.Visibility = Visibility.Collapsed;
@@ -267,19 +265,19 @@ namespace LiveCaptionsTranslator
 
             if (Translator.Setting.MainWindow.CaptionLogEnabled)
             {
-                if (mainWindow.Height <= 170)
+                if (mainWindow.Height < 60)
                 {
                     mainWindow.Height = 400;
                 }
                 mainWindow.AutoHeightAdjust(
-                    minHeight: 170,
+                    minHeight: 60,
                     maxHeight: -1);
             }
             else
             {
                 mainWindow.AutoHeightAdjust(
-                    minHeight: 170,
-                    maxHeight: 170);
+                    minHeight: 60,
+                    maxHeight: 60);
             }
         }
 

@@ -426,7 +426,7 @@
                                                     <ui:SymbolIcon Symbol="Info16" />
                                                 </Button>
                                             </StackPanel>
-                                            <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,20,0" Text="文脈認識に含める履歴の数（オーバーレイ表示文数の上限）" />
+                                            <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,20,0" Text="文脈認識に含める履歴の数" />
                                         </StackPanel>
                                         <ui:NumberBox
                                             Grid.Column="1"

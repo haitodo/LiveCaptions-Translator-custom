@@ -16,7 +16,7 @@
     <!-- MainWindow -->
     <sys:String x:Key="MainWindowTitle">LiveCaptions Translator</sys:String>
     <sys:String x:Key="ToolTipPauseTranslation">翻訳を一時停止 (ログのみ)</sys:String>
-    <sys:String x:Key="ToolTipOverlayWindow">オーバーレイウィンドウ</sys:String>
+
     <sys:String x:Key="ToolTipAlwaysOnTop">常に最前面</sys:String>
     <sys:String x:Key="ToolTipLogCards">字幕ログカード</sys:String>
     <sys:String x:Key="ToolTipShowOriginal">原文の表示/非表示</sys:String>
@@ -56,7 +56,7 @@
     <sys:String x:Key="LabelShowLatency">レイテンシ表示</sys:String>
     <sys:String x:Key="LabelShowOriginal">原文表示</sys:String>
     <sys:String x:Key="LabelContexts">コンテキスト数</sys:String>
-    <sys:String x:Key="ContextsInfo">コンテキスト数:&#x0A;コンテキスト認識（Context Aware）が有効な場合に、コンテキストとして使用する文章の数を決定します。&#x0A;&#x0A;オーバーレイ表示数:&#x0A;字幕ログカードが有効な場合に表示するカードの数、およびオーバーレイウィンドウに表示する最大文章数を決定します。&#x0A;&#x0A;注意:&#x0A;コンテキスト数は表示文数以上である必要があります。満たさない場合、プログラムは自動的に調整します。</sys:String>
+    <sys:String x:Key="ContextsInfo">コンテキスト数:&#x0A;コンテキスト認識（Context Aware）が有効な場合に、コンテキストとして使用する文章の数を決定します。&#x0A;&#x0A;表示文数:&#x0A;字幕ログカードに表示する最大文章数（履歴の数）を決定します。&#x0A;&#x0A;注意:&#x0A;コンテキスト数は表示文数以上である必要があります。満たさない場合、プログラムは自動的に調整します。</sys:String>
     <sys:String x:Key="LabelDisplaySentences">表示文数</sys:String>
     <sys:String x:Key="LabelContextAware">コンテキスト認識</sys:String>
     <sys:String x:Key="ContextAwareInfo">文脈（コンテキスト）に沿って翻訳します。&#x0A;翻訳精度は向上しますが、消費トークン数が増加します。</sys:String>
@@ -96,20 +96,7 @@
     <sys:String x:Key="MsgModelsLoaded">{0} 個のモデルを読み込みました。</sys:String>
     <sys:String x:Key="MsgNoModelsFound">モデルが見つからないか、接続できません。サーバーが起動しているか確認してください。</sys:String>
 
-    <!-- OverlayWindow ToolTips -->
-    <sys:String x:Key="ToolTipOverlayTranslate">今すぐ翻訳</sys:String>
-    <sys:String x:Key="ToolTipFontSizeIncrease">フォントサイズを大きくする</sys:String>
-    <sys:String x:Key="ToolTipFontSizeDecrease">フォントサイズを小さくする</sys:String>
-    <sys:String x:Key="ToolTipFontStrokeIncrease">フォント縁取りを太くする</sys:String>
-    <sys:String x:Key="ToolTipFontStrokeDecrease">フォント縁取りを細くする</sys:String>
-    <sys:String x:Key="ToolTipFontBold">フォントを太字にする</sys:String>
-    <sys:String x:Key="ToolTipFontColor">フォント色</sys:String>
-    <sys:String x:Key="ToolTipOpacityIncrease">背景の不透明度を上げる</sys:String>
-    <sys:String x:Key="ToolTipOpacityDecrease">背景の不透明度を下げる</sys:String>
-    <sys:String x:Key="ToolTipBackgroundColor">背景色</sys:String>
-    <sys:String x:Key="ToolTipOnlyMode">字幕のみ、または翻訳のみを表示する</sys:String>
-    <sys:String x:Key="ToolTipSwitchMode">字幕と翻訳の表示順を入れ替える</sys:String>
-    <sys:String x:Key="ToolTipClickThrough">マウスクリック透過</sys:String>
+
 
     <!-- Home Screen Customization -->
     <sys:String x:Key="LabelCaptionFontSize">字幕フォントサイズ</sys:String>

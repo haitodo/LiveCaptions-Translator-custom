@@ -46,6 +46,10 @@ namespace LiveCaptionsTranslator
 
             caption = Caption.GetInstance();
             setting = Setting.Load();
+            if (setting?.MainWindow != null)
+            {
+                setting.MainWindow.CaptionLogEnabled = true;
+            }
         }
 
         public static void SyncLoop()
@@ -87,9 +91,6 @@ namespace LiveCaptionsTranslator
                         caption.TranslatedCaption = string.Empty;
                         caption.DisplayOriginalCaption = string.Empty;
                         caption.DisplayTranslatedCaption = string.Empty;
-                        caption.OverlayOriginalCaption = " ";
-                        caption.OverlayCurrentTranslation = " ";
-                        caption.OverlayNoticePrefix = " ";
                     }
                     Thread.Sleep(25);
                     continue;
@@ -129,15 +130,7 @@ namespace LiveCaptionsTranslator
                 // 自動翻訳が有効かつ文字数蓄積が無効な場合（デフォルトの挙動）
                 if (Setting.AutoTranslate && !Setting.AccumulateEnabled)
                 {
-                    // `OverlayOriginalCaption`: The sentence to be displayed on Overlay Window.
-                    Caption.OverlayOriginalCaption = latestCaption;
-                    for (int historyCount = Math.Min(Setting.DisplaySentences, Caption.Contexts.Count);
-                         historyCount > 0 && lastEOSIndex > 0;
-                         historyCount--)
-                    {
-                        lastEOSIndex = fullText[0..lastEOSIndex].LastIndexOfAny(TextUtil.PUNC_EOS);
-                        Caption.OverlayOriginalCaption = fullText.Substring(lastEOSIndex + 1);
-                    }
+
 
                     // `DisplayOriginalCaption`: The sentence to be displayed on Main Window.
                     if (string.CompareOrdinal(Caption.DisplayOriginalCaption, latestCaption) != 0)
@@ -170,7 +163,7 @@ namespace LiveCaptionsTranslator
                             combinedOriginal += latestCaption.TrimStart();
                     }
 
-                    Caption.OverlayOriginalCaption = combinedOriginal;
+
 
                     if (string.CompareOrdinal(Caption.DisplayOriginalCaption, combinedOriginal) != 0)
                     {
@@ -291,8 +284,6 @@ namespace LiveCaptionsTranslator
                 {
                     Caption.TranslatedCaption = string.Empty;
                     Caption.DisplayTranslatedCaption = "[Paused]";
-                    Caption.OverlayNoticePrefix = "[Paused]";
-                    Caption.OverlayCurrentTranslation = string.Empty;
                 }
                 else if (!string.IsNullOrEmpty(RegexPatterns.NoticePrefix().Replace(
                              translatedText, string.Empty).Trim()) &&
@@ -303,15 +294,7 @@ namespace LiveCaptionsTranslator
                     Caption.DisplayTranslatedCaption =
                         TextUtil.ShortenDisplaySentence(Caption.TranslatedCaption, TextUtil.VERYLONG_THRESHOLD);
 
-                    // Overlay window
-                    if (Caption.TranslatedCaption.Contains("[ERROR]") || Caption.TranslatedCaption.Contains("[WARNING]"))
-                        Caption.OverlayCurrentTranslation = Caption.TranslatedCaption;
-                    else
-                    {
-                        var match = RegexPatterns.NoticePrefixAndTranslation().Match(Caption.TranslatedCaption);
-                        Caption.OverlayNoticePrefix = match.Groups[1].Value.Trim();
-                        Caption.OverlayCurrentTranslation = match.Groups[2].Value.Trim();
-                    }
+
                 }
 
                 // If the original sentence is a complete sentence, choke for better visual experience.
@@ -425,8 +408,6 @@ namespace LiveCaptionsTranslator
             }
 
             Caption?.OnPropertyChanged("DisplayLogCards");
-            Caption?.OnPropertyChanged("OverlayPreviousTranslation");
-            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
         }
 
         public static async Task UpdateLastContext(CancellationToken token = default)
@@ -445,8 +426,6 @@ namespace LiveCaptionsTranslator
             }
 
             Caption?.OnPropertyChanged("DisplayLogCards");
-            Caption?.OnPropertyChanged("OverlayPreviousTranslation");
-            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
         }
 
         public static void ClearContexts()
@@ -454,8 +433,6 @@ namespace LiveCaptionsTranslator
             Caption?.Contexts.Clear();
 
             Caption?.OnPropertyChanged("DisplayLogCards");
-            Caption?.OnPropertyChanged("OverlayPreviousTranslation");
-            Caption?.OnPropertyChanged("OverlayPreviousOriginal");
         }
 
         public static void ClearAllCaptions()
@@ -487,9 +464,6 @@ namespace LiveCaptionsTranslator
                 caption.TranslatedCaption = string.Empty;
                 caption.DisplayOriginalCaption = string.Empty;
                 caption.DisplayTranslatedCaption = string.Empty;
-                caption.OverlayOriginalCaption = " ";
-                caption.OverlayCurrentTranslation = " ";
-                caption.OverlayNoticePrefix = " ";
             }
         }
 

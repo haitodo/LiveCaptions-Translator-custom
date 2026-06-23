@@ -10,7 +10,7 @@ namespace LiveCaptionsTranslator.models
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private bool topmost = true;
-        private bool captionLogEnabled = false;
+        private bool captionLogEnabled = true;
         private bool latencyShow = false;
         private bool showOriginalCaption = false;
         private bool autoScrollEnabled = true;
@@ -158,80 +158,6 @@ namespace LiveCaptionsTranslator.models
 
         [System.Text.Json.Serialization.JsonIgnore]
         public int CaptionFontSizeLogOriginal => Math.Max(8, (int)(captionFontSize * 0.7));
-
-        public void OnPropertyChanged([CallerMemberName] string propName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-            Translator.Setting?.Save();
-        }
-    }
-
-    public class OverlayWindowState : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private int fontSize = 15;
-        private Color fontColor = Color.White;
-        private FontBold fontBold = FontBold.None;
-        private double fontStroke = 0.0;
-
-        private Color backgroundColor = Color.Black;
-        private int opacity = 150;
-
-        public int FontSize
-        {
-            get => fontSize;
-            set
-            {
-                fontSize = value;
-                OnPropertyChanged("FontSize");
-            }
-        }
-        public Color FontColor
-        {
-            get => fontColor;
-            set
-            {
-                fontColor = value;
-                OnPropertyChanged("FontColor");
-            }
-        }
-        public FontBold FontBold
-        {
-            get => fontBold;
-            set
-            {
-                fontBold = value;
-                OnPropertyChanged("FontBold");
-            }
-        }
-        public double FontStroke
-        {
-            get => fontStroke;
-            set
-            {
-                fontStroke = value;
-                OnPropertyChanged("FontStroke");
-            }
-        }
-        public Color BackgroundColor
-        {
-            get => backgroundColor;
-            set
-            {
-                backgroundColor = value;
-                OnPropertyChanged("BackgroundColor");
-            }
-        }
-        public int Opacity
-        {
-            get => opacity;
-            set
-            {
-                opacity = value;
-                OnPropertyChanged("Opacity");
-            }
-        }
 
         public void OnPropertyChanged([CallerMemberName] string propName = "")
         {

@@ -31,7 +31,6 @@ namespace LiveCaptionsTranslator.models
         private string? ignoredUpdateVersion;
 
         private MainWindowState mainWindowState;
-        private OverlayWindowState overlayWindowState;
         private Dictionary<string, string> windowBounds;
 
         private Dictionary<string, List<TranslateAPIConfig>> configs;
@@ -165,15 +164,7 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("MainWindow");
             }
         }
-        public OverlayWindowState OverlayWindow
-        {
-            get => overlayWindowState;
-            set
-            {
-                overlayWindowState = value;
-                OnPropertyChanged("OverlayWindow");
-            }
-        }
+
         public Dictionary<string, string> WindowBounds
         {
             get => windowBounds;
@@ -223,7 +214,6 @@ namespace LiveCaptionsTranslator.models
                      "REMOVE all 🔤 when you output.";
 
             mainWindowState = new MainWindowState();
-            overlayWindowState = new OverlayWindowState();
 
             double screenWidth = SystemParameters.PrimaryScreenWidth;
             double screenHeight = SystemParameters.PrimaryScreenHeight;
@@ -232,11 +222,7 @@ namespace LiveCaptionsTranslator.models
                 {
                     "MainWindow", string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0}, {1}, {2}, {3}", (screenWidth - 775) / 2, screenHeight * 3 / 4 - 167, 775, 167)
-                },
-                {
-                    "OverlayWindow", string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                        "{0}, {1}, {2}, {3}", (screenWidth - 650) / 2, screenHeight * 5 / 6 - 135, 650, 135)
-                },
+                }
             };
 
             configs = new Dictionary<string, List<TranslateAPIConfig>>

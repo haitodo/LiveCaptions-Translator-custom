@@ -15,9 +15,7 @@ namespace LiveCaptionsTranslator.models
 
         private string displayOriginalCaption = string.Empty;
         private string displayTranslatedCaption = string.Empty;
-        private string overlayOriginalCaption = " ";
-        private string overlayCurrentTranslation = " ";
-        private string overlayNoticePrefix = " ";
+
 
         public string OriginalCaption { get; set; } = string.Empty;
         public string TranslatedCaption { get; set; } = string.Empty;
@@ -90,39 +88,7 @@ namespace LiveCaptionsTranslator.models
             }
         }
 
-        public string OverlayOriginalCaption
-        {
-            get => overlayOriginalCaption;
-            set
-            {
-                overlayOriginalCaption = value;
-                OnPropertyChanged("OverlayOriginalCaption");
-            }
-        }
-        public string OverlayNoticePrefix
-        {
-            get => overlayNoticePrefix;
-            set
-            {
-                overlayNoticePrefix = value;
-                OnPropertyChanged("OverlayNoticePrefix");
-            }
-        }
-        public string OverlayCurrentTranslation
-        {
-            get => overlayCurrentTranslation;
-            set
-            {
-                overlayCurrentTranslation = value;
-                OnPropertyChanged("OverlayCurrentTranslation");
-            }
-        }
 
-        public string OverlayPreviousTranslation =>
-            GetPreviousText(Translator.Setting.DisplaySentences, TextType.Translation);
-
-        public string OverlayPreviousOriginal =>
-            GetPreviousText(Translator.Setting.DisplaySentences, TextType.Caption);
 
         private Caption()
         {
