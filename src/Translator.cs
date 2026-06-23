@@ -59,6 +59,12 @@ namespace LiveCaptionsTranslator
 
             while (true)
             {
+                if (LogOnlyFlag)
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+
                 if (Window == null)
                 {
                     Thread.Sleep(2000);
@@ -278,14 +284,15 @@ namespace LiveCaptionsTranslator
         {
             while (true)
             {
-                var (translatedText, isChoke) = translationTaskQueue.Output;
-
                 if (LogOnlyFlag)
                 {
-                    Caption.TranslatedCaption = string.Empty;
-                    Caption.DisplayTranslatedCaption = "[Paused]";
+                    Thread.Sleep(100);
+                    continue;
                 }
-                else if (!string.IsNullOrEmpty(RegexPatterns.NoticePrefix().Replace(
+
+                var (translatedText, isChoke) = translationTaskQueue.Output;
+
+                if (!string.IsNullOrEmpty(RegexPatterns.NoticePrefix().Replace(
                              translatedText, string.Empty).Trim()) &&
                          string.CompareOrdinal(Caption.TranslatedCaption, translatedText) != 0)
                 {
@@ -433,6 +440,12 @@ namespace LiveCaptionsTranslator
             Caption?.Contexts.Clear();
 
             Caption?.OnPropertyChanged("DisplayLogCards");
+        }
+
+        public static void ClearPendingQueues()
+        {
+            pendingTextQueue.Clear();
+            translationTaskQueue.Clear();
         }
 
         public static void ClearAllCaptions()

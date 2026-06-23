@@ -16,6 +16,8 @@
     <!-- MainWindow -->
     <sys:String x:Key="MainWindowTitle">LiveCaptions Translator</sys:String>
     <sys:String x:Key="ToolTipPauseTranslation">翻訳を一時停止 (ログのみ)</sys:String>
+    <sys:String x:Key="ToolTipResumeTranslation">翻訳を再開</sys:String>
+    <sys:String x:Key="ToolTipBatchTranslate">一括翻訳 (LLM)</sys:String>
 
     <sys:String x:Key="ToolTipAlwaysOnTop">常に最前面</sys:String>
     <sys:String x:Key="ToolTipLogCards">字幕ログカード</sys:String>

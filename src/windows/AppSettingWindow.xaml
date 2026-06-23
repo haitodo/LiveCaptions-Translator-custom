@@ -286,6 +286,27 @@
                                 </Grid>
                             </ui:Card>
 
+                            <!-- カード: 一括翻訳用 API -->
+                            <ui:Card Margin="0,0,0,10" Padding="15">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <ui:TextBlock FontWeight="SemiBold" Text="一括翻訳用 API (LLM)" />
+                                        <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="一括翻訳機能で使用する LLM API エンジンを設定します。事前に「API設定を開く」で設定しておく必要があります。" />
+                                    </StackPanel>
+                                    <ComboBox
+                                        Grid.Column="1"
+                                        x:Name="BatchTranslateAPIBox"
+                                        Width="160"
+                                        Height="32"
+                                        VerticalAlignment="Center"
+                                        SelectedItem="{Binding BatchApiName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                            </ui:Card>
+
                             <!-- カード: 翻訳先言語 -->
                             <ui:Card Margin="0,0,0,10" Padding="15">
                                 <Grid>
@@ -707,6 +728,28 @@
                                             Maximum="40"
                                             Minimum="0"
                                             Value="{Binding MainWindow.ItemSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
+                                    <Separator Margin="0,5,0,10" />
+                                    <!-- 一括翻訳結果の行間 -->
+                                    <Grid Margin="0,5,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <ui:TextBlock FontWeight="SemiBold" Text="一括翻訳結果の行間 (px)" />
+                                            <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Text="一括翻訳結果画面の文章同士の間の余白を指定します。" />
+                                        </StackPanel>
+                                        <ui:NumberBox
+                                            Grid.Column="1"
+                                            Width="120"
+                                            Height="32"
+                                            ClearButtonEnabled="False"
+                                            AcceptsExpression="False"
+                                            SpinButtonPlacementMode="Inline"
+                                            Maximum="40"
+                                            Minimum="0"
+                                            Value="{Binding BatchRowSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
 
                                 </StackPanel>

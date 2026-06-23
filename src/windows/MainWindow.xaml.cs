@@ -3,9 +3,12 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
+using System.Linq;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
+using LiveCaptionsTranslator.apis;
+using LiveCaptionsTranslator.models;
 using LiveCaptionsTranslator.utils;
 using LiveCaptionsTranslator.Utils;
 using Button = Wpf.Ui.Controls.Button;
@@ -32,6 +35,7 @@ namespace LiveCaptionsTranslator
                 CheckForFirstUse();
                 CheckForUpdates();
                 UpdateLiveCaptionsButtonState();
+                UpdateLogOnlyButtonState();
             };
 
             double screenWidth = SystemParameters.PrimaryScreenWidth;
@@ -79,21 +83,41 @@ namespace LiveCaptionsTranslator
 
         private void LogOnlyButton_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var symbolIcon = button?.Icon as SymbolIcon;
-
+            Translator.LogOnlyFlag = !Translator.LogOnlyFlag;
             if (Translator.LogOnlyFlag)
             {
-                Translator.LogOnlyFlag = false;
-                symbolIcon.Filled = false;
+                Translator.ClearPendingQueues();
             }
-            else
-            {
-                Translator.LogOnlyFlag = true;
-                symbolIcon.Filled = true;
-            }
+            UpdateLogOnlyButtonState();
+        }
 
-            Translator.ClearContexts();
+        public void UpdateLogOnlyButtonState()
+        {
+            if (LogOnlyButton == null) return;
+
+            if (LogOnlyButton.Icon is SymbolIcon icon)
+            {
+                if (Translator.LogOnlyFlag)
+                {
+                    icon.Symbol = SymbolRegular.Play16;
+                    icon.Filled = true;
+                    LogOnlyButton.Appearance = ControlAppearance.Primary;
+                    LogOnlyButton.ToolTip = Application.Current.TryFindResource("ToolTipResumeTranslation") as string ?? "翻訳を再開";
+                    
+                    string baseTitle = Application.Current.TryFindResource("MainWindowTitle") as string ?? "LiveCaptions Translator";
+                    string pausedText = Application.Current.TryFindResource("Paused") as string ?? "[一時停止中]";
+                    this.Title = $"{baseTitle} {pausedText}";
+                }
+                else
+                {
+                    icon.Symbol = SymbolRegular.Pause16;
+                    icon.Filled = false;
+                    LogOnlyButton.Appearance = ControlAppearance.Transparent;
+                    LogOnlyButton.ToolTip = Application.Current.TryFindResource("ToolTipPauseTranslation") as string ?? "翻訳を一時停止 (ログのみ)";
+                    
+                    this.Title = Application.Current.TryFindResource("MainWindowTitle") as string ?? "LiveCaptions Translator";
+                }
+            }
         }
 
 
@@ -390,6 +414,98 @@ namespace LiveCaptionsTranslator
             {
                 icon.Filled = !isHide;
                 LiveCaptionsToggleButton.Appearance = !isHide ? ControlAppearance.Primary : ControlAppearance.Transparent;
+            }
+        }
+
+        private async void BatchTranslateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var originalSentences = Translator.Caption?.Contexts
+                .Select(c => c.SourceText?.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+
+            if (originalSentences == null || originalSentences.Count == 0)
+            {
+                string noTextMsg = "翻訳元の履歴がありません。字幕が文字起こしされてから実行してください。";
+                SnackbarHost.Show("一括翻訳", noTextMsg, SnackbarType.Warning, timeout: 3);
+                return;
+            }
+
+            string batchApiName = Translator.Setting?.BatchApiName ?? "OpenRouter";
+
+            if (!TranslateAPI.GetBatchLLMConfig(batchApiName, out BaseLLMConfig? config))
+            {
+                string errorMsg = $"一括翻訳用 API として「{batchApiName}」が指定されていますが、API設定（APIキーまたはモデル名）が入力されていません。設定画面で API の設定を行ってください。";
+                var messageBox = new Wpf.Ui.Controls.MessageBox
+                {
+                    Title = "LLM未設定",
+                    Content = errorMsg,
+                    CloseButtonText = "OK"
+                };
+                await messageBox.ShowDialogAsync();
+                return;
+            }
+
+            Cursor = Cursors.Wait;
+            BatchTranslateButton.IsEnabled = false;
+
+            try
+            {
+                string joinedText = string.Join("\n", originalSentences);
+                string targetLanguage = Translator.Setting?.TargetLanguage ?? "ja-JP";
+
+                string translatedFullText = await TranslateAPI.TranslateBatchWithLLM(batchApiName, config!, joinedText, targetLanguage);
+
+                if (translatedFullText.StartsWith("[ERROR]"))
+                {
+                    var errorBox = new Wpf.Ui.Controls.MessageBox
+                    {
+                        Title = "一括翻訳エラー",
+                        Content = $"翻訳処理中にエラーが発生しました:\n{translatedFullText}",
+                        CloseButtonText = "閉じる"
+                    };
+                    await errorBox.ShowDialogAsync();
+                    return;
+                }
+
+                var translatedLines = translatedFullText
+                    .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                    .Select(line => line.Trim())
+                    .ToList();
+
+                var rows = new List<BatchTranslationRow>();
+                int maxCount = Math.Max(originalSentences.Count, translatedLines.Count);
+                for (int i = 0; i < maxCount; i++)
+                {
+                    string src = i < originalSentences.Count ? originalSentences[i] : string.Empty;
+                    string trans = i < translatedLines.Count ? translatedLines[i] : string.Empty;
+                    rows.Add(new BatchTranslationRow
+                    {
+                        SourceText = src,
+                        TranslatedText = trans
+                    });
+                }
+
+                var batchWindow = new BatchTranslationWindow(batchApiName, targetLanguage, rows)
+                {
+                    Owner = this
+                };
+                batchWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                var exceptionBox = new Wpf.Ui.Controls.MessageBox
+                {
+                    Title = "一括翻訳エラー",
+                    Content = $"予期しないエラーが発生しました:\n{ex.Message}",
+                    CloseButtonText = "閉じる"
+                };
+                await exceptionBox.ShowDialogAsync();
+            }
+            finally
+            {
+                Cursor = Cursors.Arrow;
+                BatchTranslateButton.IsEnabled = true;
             }
         }
     }

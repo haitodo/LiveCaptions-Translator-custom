@@ -29,6 +29,8 @@ namespace LiveCaptionsTranslator.models
         private string interfaceLanguage = "ja";
         private string prompt;
         private string? ignoredUpdateVersion;
+        private string batchApiName = "OpenRouter";
+        private int batchRowSpacing = 4;
 
         private MainWindowState mainWindowState;
         private Dictionary<string, string> windowBounds;
@@ -154,6 +156,24 @@ namespace LiveCaptionsTranslator.models
                 OnPropertyChanged("IgnoredUpdateVersion");
             }
         }
+        public string BatchApiName
+        {
+            get => batchApiName;
+            set
+            {
+                batchApiName = value;
+                OnPropertyChanged("BatchApiName");
+            }
+        }
+        public int BatchRowSpacing
+        {
+            get => batchRowSpacing;
+            set
+            {
+                batchRowSpacing = value;
+                OnPropertyChanged("BatchRowSpacing");
+            }
+        }
 
         public MainWindowState MainWindow
         {
@@ -203,6 +223,8 @@ namespace LiveCaptionsTranslator.models
         public Setting()
         {
             apiName = "Google";
+            batchApiName = "OpenRouter";
+            batchRowSpacing = 4;
             targetLanguage = "ja-JP";
             interfaceLanguage = "ja";
             prompt = "As an professional simultaneous interpreter with specialized knowledge in the all fields, " +

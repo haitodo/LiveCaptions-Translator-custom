@@ -699,6 +699,251 @@ namespace LiveCaptionsTranslator.apis
             else
                 return $"[ERROR] Translation Failed: HTTP Error - {response.StatusCode}";
         }
+        public static bool GetBatchLLMConfig(string batchApiName, out BaseLLMConfig? config)
+        {
+            config = null;
+            if (Translator.Setting == null) return false;
+
+            config = Translator.Setting[batchApiName] as BaseLLMConfig;
+            if (config == null) return false;
+
+            if (batchApiName == "OpenAI")
+            {
+                var openAi = config as OpenAIConfig;
+                return openAi != null && !string.IsNullOrEmpty(openAi.ApiKey);
+            }
+            else if (batchApiName == "OpenRouter")
+            {
+                var openRouter = config as OpenRouterConfig;
+                return openRouter != null && !string.IsNullOrEmpty(openRouter.ApiKey);
+            }
+            else if (batchApiName == "LMStudio")
+            {
+                var lmStudio = config as LMStudioConfig;
+                return lmStudio != null && !string.IsNullOrEmpty(lmStudio.ModelName);
+            }
+            else if (batchApiName == "Ollama")
+            {
+                var ollama = config as OllamaConfig;
+                return ollama != null && !string.IsNullOrEmpty(ollama.ModelName);
+            }
+
+            return false;
+        }
+
+        public static bool GetConfiguredLLM(out string apiName, out BaseLLMConfig? config)
+        {
+            apiName = string.Empty;
+            config = null;
+
+            if (Translator.Setting == null) return false;
+
+            // If the current API is LLM-based, use it
+            if (IsLLMBased)
+            {
+                apiName = Translator.Setting.ApiName;
+                config = Translator.Setting[apiName] as BaseLLMConfig;
+                return config != null;
+            }
+
+            // Check OpenRouter
+            var openRouter = Translator.Setting["OpenRouter"] as OpenRouterConfig;
+            if (openRouter != null && !string.IsNullOrEmpty(openRouter.ApiKey))
+            {
+                apiName = "OpenRouter";
+                config = openRouter;
+                return true;
+            }
+
+            // Check OpenAI
+            var openAi = Translator.Setting["OpenAI"] as OpenAIConfig;
+            if (openAi != null && !string.IsNullOrEmpty(openAi.ApiKey))
+            {
+                apiName = "OpenAI";
+                config = openAi;
+                return true;
+            }
+
+            // Check LMStudio
+            var lmStudio = Translator.Setting["LMStudio"] as LMStudioConfig;
+            if (lmStudio != null && !string.IsNullOrEmpty(lmStudio.ModelName))
+            {
+                apiName = "LMStudio";
+                config = lmStudio;
+                return true;
+            }
+
+            // Check Ollama
+            var ollama = Translator.Setting["Ollama"] as OllamaConfig;
+            if (ollama != null && !string.IsNullOrEmpty(ollama.ModelName))
+            {
+                apiName = "Ollama";
+                config = ollama;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static async Task<string> TranslateBatchWithLLM(string apiName, BaseLLMConfig config, string text, string targetLanguage, CancellationToken token = default)
+        {
+            string language = targetLanguage;
+            if (apiName == "OpenAI" && OpenAIConfig.SupportedLanguages.TryGetValue(targetLanguage, out var langValueOpenAI))
+                language = langValueOpenAI;
+            else if (apiName == "Ollama" && OllamaConfig.SupportedLanguages.TryGetValue(targetLanguage, out var langValueOllama))
+                language = langValueOllama;
+            else if (apiName == "OpenRouter" && OpenRouterConfig.SupportedLanguages.TryGetValue(targetLanguage, out var langValueOpenRouter))
+                language = langValueOpenRouter;
+            else if (apiName == "LMStudio" && LMStudioConfig.SupportedLanguages.TryGetValue(targetLanguage, out var langValueLMStudio))
+                language = langValueLMStudio;
+
+            string systemPrompt = $"You are a professional translator. Translate the given text into {language}.\n" +
+                "CRITICAL RULE: Translate the text line-by-line. The output MUST contain exactly the same number of lines as the input, " +
+                "with each line corresponding to the translation of the respective line in the input. " +
+                "Do not combine lines, do not split lines differently, do not add line numbers, notes, quotes, or any extra text. " +
+                "Only return the translated lines.";
+
+            if (apiName == "OpenAI")
+            {
+                var openAiConfig = config as OpenAIConfig;
+                var messages = new List<BaseLLMConfig.Message>
+                {
+                    new BaseLLMConfig.Message { role = "system", content = systemPrompt },
+                    new BaseLLMConfig.Message { role = "user", content = text }
+                };
+
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {openAiConfig.ApiKey}");
+
+                HttpResponseMessage response;
+                var requestData = LLMRequestDataFactory.Create(0, openAiConfig.ModelName, messages, openAiConfig.Temperature);
+                string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                response = await client.PostAsync(TextUtil.NormalizeUrl(openAiConfig.ApiUrl), content, token);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    var responseObj = JsonSerializer.Deserialize<OpenAIConfig.Response>(responseString);
+                    var output = responseObj.choices[0].message.content;
+                    return RegexPatterns.ModelThinking().Replace(output, "");
+                }
+                else
+                {
+                    string errBody = await response.Content.ReadAsStringAsync();
+                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                }
+            }
+            else if (apiName == "Ollama")
+            {
+                var ollamaConfig = config as OllamaConfig;
+                string apiUrl = TextUtil.NormalizeUrl(ollamaConfig.ApiUrl + "/api/chat");
+                var messages = new List<BaseLLMConfig.Message>
+                {
+                    new BaseLLMConfig.Message { role = "system", content = systemPrompt },
+                    new BaseLLMConfig.Message { role = "user", content = text }
+                };
+
+                var requestData = LLMRequestDataFactory.Create("Ollama", ollamaConfig.ModelName, messages, ollamaConfig.Temperature);
+                requestData.keep_alive = ollamaConfig.keep_alive;
+                string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                client.DefaultRequestHeaders.Clear();
+
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    var responseObj = JsonSerializer.Deserialize<OllamaConfig.Response>(responseString);
+                    var output = responseObj.message.content;
+                    return RegexPatterns.ModelThinking().Replace(output, "");
+                }
+                else
+                {
+                    string errBody = await response.Content.ReadAsStringAsync();
+                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                }
+            }
+            else if (apiName == "OpenRouter")
+            {
+                var openRouterConfig = config as OpenRouterConfig;
+                string apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+                var messages = new List<BaseLLMConfig.Message>
+                {
+                    new BaseLLMConfig.Message { role = "system", content = systemPrompt },
+                    new BaseLLMConfig.Message { role = "user", content = text }
+                };
+
+                var requestData = LLMRequestDataFactory.Create("OpenRouter", openRouterConfig.ModelName, messages, openRouterConfig.Temperature);
+                string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {openRouterConfig?.ApiKey}");
+
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var output = jsonResponse.GetProperty("choices")[0]
+                                             .GetProperty("message")
+                                             .GetProperty("content")
+                                             .GetString() ?? string.Empty;
+                    return RegexPatterns.ModelThinking().Replace(output, "");
+                }
+                else
+                {
+                    string errBody = await response.Content.ReadAsStringAsync();
+                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                }
+            }
+            else if (apiName == "LMStudio")
+            {
+                var lmStudioConfig = config as LMStudioConfig;
+                string apiUrl = TextUtil.NormalizeUrl(lmStudioConfig.ApiUrl) + "/chat";
+
+                var requestData = new
+                {
+                    model = lmStudioConfig.ModelName,
+                    system_prompt = systemPrompt,
+                    input = text,
+                    temperature = lmStudioConfig.Temperature
+                };
+
+                string jsonContent = JsonSerializer.Serialize(requestData);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                client.DefaultRequestHeaders.Clear();
+
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(responseString);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("output", out var outputArray) &&
+                        outputArray.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in outputArray.EnumerateArray())
+                        {
+                            if (item.TryGetProperty("type", out var typeProp) &&
+                                typeProp.GetString() == "message" &&
+                                item.TryGetProperty("content", out var contentProp))
+                            {
+                                return RegexPatterns.ModelThinking().Replace(contentProp.GetString() ?? "", "");
+                            }
+                        }
+                    }
+                    return "[ERROR] Unexpected response format";
+                }
+                else
+                {
+                    string errBody = await response.Content.ReadAsStringAsync();
+                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                }
+            }
+
+            return "[ERROR] Unsupported API";
+        }
     }
 
     public class ConfigDictConverter : JsonConverter<Dictionary<string, List<TranslateAPIConfig>>>
