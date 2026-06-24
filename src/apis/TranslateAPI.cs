@@ -293,7 +293,9 @@ namespace LiveCaptionsTranslator.apis
             var config = Translator.Setting["OpenRouter"] as OpenRouterConfig;
             string language = OpenRouterConfig.SupportedLanguages.TryGetValue(
                 Translator.Setting.TargetLanguage, out var langValue) ? langValue : Translator.Setting.TargetLanguage;
-            string apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+            // ▼ 修正: 固定文字列から config.ApiUrl をベースに構築する形に変更
+            string apiUrl = TextUtil.NormalizeUrl(config.ApiUrl) + "/chat/completions";
 
             var messages = new List<BaseLLMConfig.Message>
             {
@@ -317,6 +319,7 @@ namespace LiveCaptionsTranslator.apis
                 }
             }
 
+            // （以下、既存のコードがそのまま続きます）
             var requestData = LLMRequestDataFactory.Create("OpenRouter", config.ModelName, messages, config.Temperature);
 
             string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
@@ -795,6 +798,42 @@ namespace LiveCaptionsTranslator.apis
             return false;
         }
 
+        private static string ExtractJsonArray(string output)
+        {
+            output = RegexPatterns.ModelThinking().Replace(output ?? "", "");
+
+            try
+            {
+                // マークダウン等が含まれている場合を考慮し、JSONの { } を抽出
+                int startIndex = output.IndexOf('{');
+                int endIndex = output.LastIndexOf('}');
+                if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex)
+                {
+                    string jsonString = output.Substring(startIndex, endIndex - startIndex + 1);
+                    using var doc = JsonDocument.Parse(jsonString);
+                    if (doc.RootElement.TryGetProperty("translations", out var translations))
+                    {
+                        return translations.GetRawText(); // 配列部分のみを返す
+                    }
+                }
+            }
+            catch { }
+
+            // フォールバック: 万が一直接配列が返ってきた場合
+            try
+            {
+                int startIndex = output.IndexOf('[');
+                int endIndex = output.LastIndexOf(']');
+                if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex)
+                {
+                    return output.Substring(startIndex, endIndex - startIndex + 1);
+                }
+            }
+            catch { }
+
+            return output; // パース失敗時はそのまま返す
+        }
+
         public static async Task<string> TranslateBatchWithLLM(string apiName, BaseLLMConfig config, string text, string targetLanguage, CancellationToken token = default)
         {
             string language = targetLanguage;
@@ -814,9 +853,9 @@ namespace LiveCaptionsTranslator.apis
                                "【翻訳ルール】\n" +
                                "1. 堅苦しい直訳は避け、話者の「言い方」「感情」「ニュアンス」「カジュアルさ」をできるだけそのまま生かした、自然な日本語（話し言葉・会話表現）に翻訳してください。過度に丁寧な表現（不自然な「です・ます調」）にする必要はありません。\n" +
                                "2. 文字起こし特有の言い淀み（\"um\", \"ah\", \"like\" など）や、直後の言い直しによる重複は、日本語として最も自然に聞こえるようにうまく補完・省略して翻訳してください。\n" +
-                               "3. 入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順 of の文を表す \"id\" と \"text\" フィールドがあります。\n" +
-                               "4. 出力は、元の \"id\" とそれに対応する \"translation\" フィールドを持つ、有効なJSON配列形式のみとしてください。\n" +
-                               "5. 余計な説明、挨拶、マークダウンのコードブロック（```json など）は絶対に含めず、純粋なJSON配列のみを返却してください。\n\n" +
+                               "3. 入力はJSON配列のオブジェクト形式で提供され、各オブジェクトには時系列順の文を表す \"id\" と \"text\" フィールドがあります。\n" +
+                               "4. 出力は必ず \"translations\" というキーを持つJSONオブジェクトとし、その値として、元の \"id\" と \"translation\" フィールドを持つ配列を含めてください。\n" +
+                               "5. 余計な説明、挨拶、マークダウンのコードブロック（```json など）は絶対に含めず、純粋なJSONオブジェクトのみを返却してください。\n\n" +
                                "【翻訳例 (Few-Shot)】\n" +
                                "入力:\n" +
                                "[\n" +
@@ -824,19 +863,23 @@ namespace LiveCaptionsTranslator.apis
                                "  { \"id\": 1, \"text\": \"maybe we could try this new restaurant, you know?\" }\n" +
                                "]\n" +
                                "出力:\n" +
-                               "[\n" +
-                               "  { \"id\": 0, \"translation\": \"それでさ… なんか、もしかしたら…って思ったんだけど、\" },\n" +
-                               "  { \"id\": 1, \"translation\": \"あの新しいレストラン、行ってみない？\" }\n" +
-                               "]";
+                               "{\n" +
+                               "  \"translations\": [\n" +
+                               "    { \"id\": 0, \"translation\": \"それでさ… なんか、もしかしたら…って思ったんだけど、\" },\n" +
+                               "    { \"id\": 1, \"translation\": \"あの新しいレストラン、行ってみない？\" }\n" +
+                               "  ]\n" +
+                               "}";
             }
 
             if (systemPrompt.Contains("{0}"))
             {
-                try
-                {
-                    systemPrompt = string.Format(systemPrompt, language);
-                }
-                catch { }
+                try { systemPrompt = string.Format(systemPrompt, language); } catch { }
+            }
+
+            // OpenAI等はプロンプト内に「JSON」という単語が含まれていないとエラーを返すため保護処理を追加
+            if (!systemPrompt.Contains("json", StringComparison.OrdinalIgnoreCase))
+            {
+                systemPrompt += "\n\n(Please output a valid JSON object containing a \"translations\" key with the array.)";
             }
 
             if (apiName == "OpenAI")
@@ -851,19 +894,22 @@ namespace LiveCaptionsTranslator.apis
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {openAiConfig.ApiKey}");
 
-                HttpResponseMessage response;
                 var requestData = LLMRequestDataFactory.Create(0, openAiConfig.ModelName, messages, openAiConfig.Temperature);
-                if (requestData != null) requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
+                if (requestData != null)
+                {
+                    requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
+                    requestData.response_format = new { type = "json_object" }; // JSONモード
+                }
+
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                response = await client.PostAsync(TextUtil.NormalizeUrl(openAiConfig.ApiUrl), content, token);
+                var response = await client.PostAsync(TextUtil.NormalizeUrl(openAiConfig.ApiUrl), content, token);
                 if (response.IsSuccessStatusCode)
                 {
                     string responseString = await response.Content.ReadAsStringAsync();
                     var responseObj = JsonSerializer.Deserialize<OpenAIConfig.Response>(responseString);
-                    var output = responseObj.choices[0].message.content;
-                    return RegexPatterns.ModelThinking().Replace(output, "");
+                    return ExtractJsonArray(responseObj.choices[0].message.content);
                 }
                 else
                 {
@@ -886,7 +932,9 @@ namespace LiveCaptionsTranslator.apis
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
                     requestData.keep_alive = ollamaConfig.keep_alive;
+                    if (requestData is OllamaRequestData oReq) oReq.format = "json"; // JSONモード
                 }
+
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
@@ -896,8 +944,7 @@ namespace LiveCaptionsTranslator.apis
                 {
                     string responseString = await response.Content.ReadAsStringAsync();
                     var responseObj = JsonSerializer.Deserialize<OllamaConfig.Response>(responseString);
-                    var output = responseObj.message.content;
-                    return RegexPatterns.ModelThinking().Replace(output, "");
+                    return ExtractJsonArray(responseObj.message.content);
                 }
                 else
                 {
@@ -908,7 +955,10 @@ namespace LiveCaptionsTranslator.apis
             else if (apiName == "OpenRouter")
             {
                 var openRouterConfig = config as OpenRouterConfig;
-                string apiUrl = "https://openrouter.ai/api/v1/chat/completions";
+
+                // ▼ 修正: 固定文字列から openRouterConfig.ApiUrl をベースに構築する形に変更
+                string apiUrl = TextUtil.NormalizeUrl(openRouterConfig.ApiUrl) + "/chat/completions";
+
                 var messages = new List<BaseLLMConfig.Message>
                 {
                     new BaseLLMConfig.Message { role = "system", content = systemPrompt },
@@ -916,7 +966,12 @@ namespace LiveCaptionsTranslator.apis
                 };
 
                 var requestData = LLMRequestDataFactory.Create("OpenRouter", openRouterConfig.ModelName, messages, openRouterConfig.Temperature);
-                if (requestData != null) requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
+                if (requestData != null)
+                {
+                    requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
+                    requestData.response_format = new { type = "json_object" }; // JSONモード
+                }
+
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
@@ -931,7 +986,7 @@ namespace LiveCaptionsTranslator.apis
                                              .GetProperty("message")
                                              .GetProperty("content")
                                              .GetString() ?? string.Empty;
-                    return RegexPatterns.ModelThinking().Replace(output, "");
+                    return ExtractJsonArray(output);
                 }
                 else
                 {
@@ -950,7 +1005,8 @@ namespace LiveCaptionsTranslator.apis
                     system_prompt = systemPrompt,
                     input = text,
                     temperature = lmStudioConfig.Temperature,
-                    max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096
+                    max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096,
+                    response_format = new { type = "json_object" } // JSONモード
                 };
 
                 string jsonContent = JsonSerializer.Serialize(requestData);
@@ -972,7 +1028,7 @@ namespace LiveCaptionsTranslator.apis
                                 typeProp.GetString() == "message" &&
                                 item.TryGetProperty("content", out var contentProp))
                             {
-                                return RegexPatterns.ModelThinking().Replace(contentProp.GetString() ?? "", "");
+                                return ExtractJsonArray(contentProp.GetString() ?? "");
                             }
                         }
                     }

@@ -224,5 +224,22 @@ namespace LiveCaptionsTranslator
             button.Background = (Brush)FindResource("ControlFillColorSecondaryBrush");
             currentSelected = button;
         }
+
+        private void ResetPromptButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is Setting setting)
+            {
+                setting.ResetPrompt();
+                // 必要に応じて、リセット完了の通知（Snackbar等）を表示する
+            }
+        }
+
+        private void ResetBatchPromptButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is Setting setting)
+            {
+                setting.ResetBatchPrompt();
+            }
+        }
     }
 }

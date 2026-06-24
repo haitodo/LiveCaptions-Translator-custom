@@ -164,13 +164,26 @@ namespace LiveCaptionsTranslator.models
     public class OpenRouterConfig : BaseLLMConfig
     {
         private string apiKey = "";
+        private string apiUrl = "https://openrouter.ai/api/v1"; // ← 追加: デフォルト値を設定
+
         public string ApiKey
         {
             get => apiKey;
             set
             {
                 apiKey = value;
-                OnPropertyChanged();
+                OnPropertyChanged("ApiKey");
+            }
+        }
+
+        // ▼ 追加: 共通処理や外部サービスからURLを参照できるようにする
+        public string ApiUrl
+        {
+            get => apiUrl;
+            set
+            {
+                apiUrl = value;
+                OnPropertyChanged("ApiUrl");
             }
         }
     }

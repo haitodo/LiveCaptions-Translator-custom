@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace LiveCaptionsTranslator.models
 {
     // Reasoning/thinking for all LLMs is disabled or minimal to reduce response time.
@@ -11,6 +13,10 @@ namespace LiveCaptionsTranslator.models
         public int max_tokens { get; set; } = 2048;
         public bool stream { get; set; } = false;
         public int keep_alive { get; set; } = 600;
+
+        // ▼ 追加: OpenAI, OpenRouter, LMStudio用 JSONモード指定
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public object response_format { get; set; }
     }
 
     public class IntegratedLLMRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
@@ -38,9 +44,13 @@ namespace LiveCaptionsTranslator.models
     }
 
     public class OllamaRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
-        : BaseLLMRequestData(model, messages, temperature)
+            : BaseLLMRequestData(model, messages, temperature)
     {
         public bool think { get; set; } = false;
+
+        // ▼ 追加: Ollama用 JSONモード指定
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public object format { get; set; }
     }
 
     public class OpenRouterRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
