@@ -59,6 +59,7 @@ namespace LiveCaptionsTranslator.models
         private string batchApiName = "OpenRouter";
         private int batchRowSpacing = 4;
         private int batchMaxTokens = 4096;
+        private bool batchUseJsonMode = true;
 
         private MainWindowState mainWindowState;
         private Dictionary<string, string> windowBounds;
@@ -219,6 +220,16 @@ namespace LiveCaptionsTranslator.models
             {
                 batchMaxTokens = value;
                 OnPropertyChanged("BatchMaxTokens");
+            }
+        }
+
+        public bool BatchUseJsonMode
+        {
+            get => batchUseJsonMode;
+            set
+            {
+                batchUseJsonMode = value;
+                OnPropertyChanged("BatchUseJsonMode");
             }
         }
 

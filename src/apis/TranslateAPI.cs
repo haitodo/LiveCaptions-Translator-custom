@@ -898,7 +898,12 @@ namespace LiveCaptionsTranslator.apis
                 if (requestData != null)
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
-                    requestData.response_format = new { type = "json_object" }; // JSONモード
+
+                    // ▼ ここを条件分岐に変更 ▼
+                    if (Translator.Setting?.BatchUseJsonMode ?? true)
+                    {
+                        requestData.response_format = new { type = "json_object" }; // JSONモード
+                    }
                 }
 
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
@@ -932,7 +937,12 @@ namespace LiveCaptionsTranslator.apis
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
                     requestData.keep_alive = ollamaConfig.keep_alive;
-                    if (requestData is OllamaRequestData oReq) oReq.format = "json"; // JSONモード
+
+                    // ▼ ここを条件分岐に変更 ▼
+                    if (Translator.Setting?.BatchUseJsonMode ?? true)
+                    {
+                        if (requestData is OllamaRequestData oReq) oReq.format = "json"; // JSONモード
+                    }
                 }
 
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
@@ -969,7 +979,12 @@ namespace LiveCaptionsTranslator.apis
                 if (requestData != null)
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
-                    requestData.response_format = new { type = "json_object" }; // JSONモード
+
+                    // ▼ ここを条件分岐に変更 ▼
+                    if (Translator.Setting?.BatchUseJsonMode ?? true)
+                    {
+                        requestData.response_format = new { type = "json_object" }; // JSONモード
+                    }
                 }
 
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
@@ -999,15 +1014,32 @@ namespace LiveCaptionsTranslator.apis
                 var lmStudioConfig = config as LMStudioConfig;
                 string apiUrl = TextUtil.NormalizeUrl(lmStudioConfig.ApiUrl) + "/chat";
 
-                var requestData = new
+                object requestData;
+
+                if (Translator.Setting?.BatchUseJsonMode ?? true)
                 {
-                    model = lmStudioConfig.ModelName,
-                    system_prompt = systemPrompt,
-                    input = text,
-                    temperature = lmStudioConfig.Temperature,
-                    max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096,
-                    response_format = new { type = "json_object" } // JSONモード
-                };
+                    requestData = new
+                    {
+                        model = lmStudioConfig.ModelName,
+                        system_prompt = systemPrompt,
+                        input = text,
+                        temperature = lmStudioConfig.Temperature,
+                        max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096,
+                        response_format = new { type = "json_object" } // JSONモードあり
+                    };
+                }
+                else
+                {
+                    requestData = new
+                    {
+                        model = lmStudioConfig.ModelName,
+                        system_prompt = systemPrompt,
+                        input = text,
+                        temperature = lmStudioConfig.Temperature,
+                        max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096
+                        // JSONモードなし
+                    };
+                }
 
                 string jsonContent = JsonSerializer.Serialize(requestData);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");

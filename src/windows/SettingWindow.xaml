@@ -193,15 +193,15 @@
                 <ScrollViewer x:Name="ContentScrollViewer" VerticalScrollBarVisibility="Auto">
 
                     <StackPanel x:Name="ContentPanel" Margin="30">
-                         <ui:TextBlock
+                        <ui:TextBlock
                             Margin="0,0,0,10"
                             FontSize="28"
                             FontWeight="Heavy"
                             Text="{DynamicResource APISettingTitle}" />
 
                         <StackPanel x:Name="AllSettings" Margin="5">
-<StackPanel x:Name="PromptSection" Margin="20">
-                                
+                            <StackPanel x:Name="PromptSection" Margin="20">
+
                                 <Grid Margin="10,10,10,10">
                                     <ui:TextBlock
                                         VerticalAlignment="Center"
@@ -257,6 +257,23 @@
                                             Text="{Binding BatchPrompt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
+                                </ui:Card>
+                                <ui:Card Padding="15" Margin="0,15,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,20,0">
+                                            <ui:TextBlock FontWeight="SemiBold" Text="一括翻訳で JSON モード (response_format) を使用する" />
+                                            <ui:TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0" Text="一部のモデルで一括翻訳の結果が空になる場合（APIの厳格なJSON制約と相性が悪い場合）、この設定をオフにしてください。" />
+                                        </StackPanel>
+                                        <ui:ToggleSwitch
+            Grid.Column="1"
+            IsChecked="{Binding BatchUseJsonMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            OffContent="オフ"
+            OnContent="オン" />
+                                    </Grid>
                                 </ui:Card>
                             </StackPanel>
 
