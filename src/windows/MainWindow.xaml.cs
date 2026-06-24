@@ -526,54 +526,107 @@ namespace LiveCaptionsTranslator
 
                 var rows = new List<BatchTranslationRow>();
                 bool parsedSuccessfully = false;
+                var translatedMap = new Dictionary<int, string>();
 
                 if (batchApiName != "Google" && batchApiName != "Google2")
                 {
+                    // 【第1段】 JsonDocumentによる柔軟なパース
                     try
                     {
                         string rawResponse = translatedFullText.Trim();
-                        // マークダウン記号や前後の余計なテキストを排除し、JSON配列部分のみを抽出する
                         string jsonStr = ExtractJsonArray(rawResponse);
 
                         if (!string.IsNullOrEmpty(jsonStr))
                         {
-                            var options = new JsonSerializerOptions
+                            using var doc = JsonDocument.Parse(jsonStr);
+                            if (doc.RootElement.ValueKind == JsonValueKind.Array)
                             {
-                                PropertyNameCaseInsensitive = true
-                            };
-
-                            // Setting.cs で定義されている DTO クラスを用いて安全にデシリアライズする
-                            var translatedItems = JsonSerializer.Deserialize<List<BatchTranslationItem>>(jsonStr, options);
-
-                            if (translatedItems != null && translatedItems.Count > 0)
-                            {
-                                var translatedMap = translatedItems.ToDictionary(item => item.Id, item => item.GetResult());
-
-                                for (int i = 0; i < originalSentences.Count; i++)
+                                foreach (var element in doc.RootElement.EnumerateArray())
                                 {
-                                    string src = originalSentences[i];
-                                    string trans = translatedMap.TryGetValue(i, out var t) ? t : string.Empty;
-                                    rows.Add(new BatchTranslationRow
+                                    if (element.TryGetProperty("id", out var idElement) && idElement.TryGetInt32(out int id))
                                     {
-                                        SourceText = src,
-                                        TranslatedText = trans
-                                    });
+                                        // プロンプトで指示している "translation" キーを探す
+                                        if (element.TryGetProperty("translation", out var transElement))
+                                        {
+                                            translatedMap[id] = transElement.GetString() ?? "";
+                                        }
+                                        // LLMが勝手に "text" にしてしまった場合の備え
+                                        else if (element.TryGetProperty("text", out var textElement))
+                                        {
+                                            translatedMap[id] = textElement.GetString() ?? "";
+                                        }
+                                    }
                                 }
-                                parsedSuccessfully = true;
+                                if (translatedMap.Count > 0)
+                                {
+                                    parsedSuccessfully = true;
+                                }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"JSON parsing failed: {ex.Message}. Falling back to line-by-line.");
+                        Debug.WriteLine($"JSONパース失敗 (正規表現フォールバックへ移行します): {ex.Message}");
+                    }
+
+                    // 【第2段】 JSONが崩れていてパース失敗した場合の、正規表現による強制抽出
+                    if (!parsedSuccessfully)
+                    {
+                        try
+                        {
+                            // "id": 数値, "translation": "文字列" のパターンを強制的に検索
+                            string pattern = @"""id""\s*:\s*(?<id>\d+)\s*,\s*""(?:translation|text)""\s*:\s*""(?<text>(?:[^""\\]|\\.)*?)""";
+                            var matches = System.Text.RegularExpressions.Regex.Matches(
+                                translatedFullText,
+                                pattern,
+                                System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                            if (matches.Count > 0)
+                            {
+                                foreach (System.Text.RegularExpressions.Match match in matches)
+                                {
+                                    if (int.TryParse(match.Groups["id"].Value, out int id))
+                                    {
+                                        // 正規表現でエスケープされた文字（\n や \" など）を元に戻す
+                                        string unescapedText = System.Text.RegularExpressions.Regex.Unescape(match.Groups["text"].Value);
+                                        translatedMap[id] = unescapedText;
+                                    }
+                                }
+                                if (translatedMap.Count > 0)
+                                {
+                                    parsedSuccessfully = true;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"正規表現抽出エラー: {ex.Message}");
+                        }
+                    }
+
+                    // 抽出成功時のリスト構築
+                    if (parsedSuccessfully)
+                    {
+                        for (int i = 0; i < originalSentences.Count; i++)
+                        {
+                            string src = originalSentences[i];
+                            string trans = translatedMap.TryGetValue(i, out var t) ? t : string.Empty;
+                            rows.Add(new BatchTranslationRow
+                            {
+                                SourceText = src,
+                                TranslatedText = trans
+                            });
+                        }
                     }
                 }
 
+                // 【最終手段】 LLMがJSONを一切返さず、ただのテキストを返してきた場合の従来フォールバック
                 if (!parsedSuccessfully)
                 {
                     var translatedLines = translatedFullText
-                        .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                        .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries) // 空行は詰める
                         .Select(line => line.Trim())
+                        .Where(line => !line.StartsWith("{") && !line.StartsWith("[")) // JSONの残骸を除外
                         .ToList();
 
                     int maxCount = Math.Max(originalSentences.Count, translatedLines.Count);
@@ -589,6 +642,7 @@ namespace LiveCaptionsTranslator
                     }
                 }
 
+                // （以降はそのまま）
                 var batchWindow = new BatchTranslationWindow(batchApiName, "日本語", rows)
                 {
                     Owner = this
