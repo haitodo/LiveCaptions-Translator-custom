@@ -53,15 +53,36 @@ namespace LiveCaptionsTranslator.models
         public object format { get; set; }
     }
 
-    public class OpenRouterRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
-        : BaseLLMRequestData(model, messages, temperature)
+    public class OpenRouterRequestData : BaseLLMRequestData
     {
         public class Reasoning
         {
             public bool exclude { get; set; } = true;
             public bool enabled { get; set; } = false;
         }
-        public Reasoning reasoning { get; set; } = new();
+
+        // ▼ nullの場合はJSONに出力しない
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Reasoning? reasoning { get; set; }
+
+        public OpenRouterRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
+            : base(model, messages, temperature)
+        {
+            string lowerModel = model.ToLower();
+
+            // 推論（思考）が必須なモデルでは、無効化パラメータを除外する
+            if (lowerModel.Contains("o1") ||
+                lowerModel.Contains("o3") ||
+                lowerModel.Contains("deepseek-r1") ||
+                lowerModel.Contains("gpt-oss"))
+            {
+                reasoning = null;
+            }
+            else
+            {
+                reasoning = new Reasoning();
+            }
+        }
     }
 
     public class AnthropicRequestData(string model, List<BaseLLMConfig.Message> messages, double temperature)
