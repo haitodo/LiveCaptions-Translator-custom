@@ -16,6 +16,7 @@
   "BatchApiName": "OpenRouter",
   "BatchRowSpacing": 4,
   "BatchMaxTokens": 4096,
+  "BatchUseJsonMode": true,
   "MainWindow": {
     "Topmost": true,
     "CaptionLogEnabled": true,
@@ -68,6 +69,7 @@
     "OpenRouter": [
       {
         "ApiKey": "",
+        "ApiUrl": "https://openrouter.ai/api/v1",
         "ModelName": "",
         "Temperature": 1
       }

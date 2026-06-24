@@ -50,6 +50,9 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
                 <ui:TextBlock Text="API: " FontWeight="Bold" VerticalAlignment="Center" />
                 <ui:TextBlock x:Name="ApiNameTextBlock" Text="OpenAI" Margin="4,0,24,0" VerticalAlignment="Center" />
+                
+                <ui:TextBlock Text="モデル: " FontWeight="Bold" VerticalAlignment="Center" />
+                <ui:TextBlock x:Name="ModelNameTextBlock" Text="N/A" Margin="4,0,24,0" VerticalAlignment="Center" />
                 <ui:TextBlock Text="翻訳先: " FontWeight="Bold" VerticalAlignment="Center" />
                 <ui:TextBlock x:Name="TargetLanguageTextBlock" Text="ja-JP" Margin="4,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
