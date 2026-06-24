@@ -49,6 +49,11 @@ namespace LiveCaptionsTranslator
             TargetLanguageTextBlock.Text = targetLanguage;
             SentencesListView.ItemsSource = items;
         }
+        private void ExportLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            string resultMsg = LiveCaptionsTranslator.apis.TranslateAPI.ExportLastBatchLog();
+            System.Windows.MessageBox.Show(resultMsg, "通信ログ出力", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 
     public class BatchTranslationRow

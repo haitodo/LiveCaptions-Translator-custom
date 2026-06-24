@@ -61,6 +61,76 @@ namespace LiveCaptionsTranslator.apis
         };
         private static int openai_fallback_index = 0;
 
+        // --- ▼ 追加: 一括翻訳の通信ログ保持用 ▼ ---
+        public class BatchLogData
+        {
+            public DateTime Timestamp { get; set; }
+            public string ApiName { get; set; }
+            public string RequestJson { get; set; }
+            public string ResponseText { get; set; }
+            public string ErrorMsg { get; set; }
+        }
+
+        public static BatchLogData? LastBatchLog { get; private set; }
+
+        private static void UpdateLastBatchLog(string apiName, string requestJson, string responseText, string? errorMsg = null)
+        {
+            LastBatchLog = new BatchLogData
+            {
+                Timestamp = DateTime.Now,
+                ApiName = apiName,
+                RequestJson = requestJson,
+                ResponseText = responseText,
+                ErrorMsg = errorMsg
+            };
+        }
+
+        public static string ExportLastBatchLog()
+        {
+            if (LastBatchLog == null) return "出力できる通信ログがありません。";
+
+            try
+            {
+                string logDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+
+                string timestamp = LastBatchLog.Timestamp.ToString("yyyyMMdd_HHmmss");
+                string filePath = Path.Combine(logDir, $"batch_debug_{LastBatchLog.ApiName}_{timestamp}.json");
+
+                // 整形用にJSONオブジェクトとしてパースを試みる
+                object requestObj = LastBatchLog.RequestJson;
+                try { requestObj = JsonSerializer.Deserialize<object>(LastBatchLog.RequestJson ?? "{}"); } catch { }
+
+                object responseObj = LastBatchLog.ResponseText;
+                if (!string.IsNullOrEmpty(LastBatchLog.ResponseText))
+                {
+                    try { responseObj = JsonSerializer.Deserialize<object>(LastBatchLog.ResponseText); } catch { }
+                }
+
+                var logData = new
+                {
+                    Timestamp = LastBatchLog.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                    ApiName = LastBatchLog.ApiName,
+                    Request = requestObj,
+                    Response = responseObj,
+                    Error = LastBatchLog.ErrorMsg
+                };
+
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                File.WriteAllText(filePath, JsonSerializer.Serialize(logData, options), Encoding.UTF8);
+
+                return $"API通信ログを出力しました。\n保存先: {filePath}";
+            }
+            catch (Exception ex)
+            {
+                return $"ログの出力に失敗しました:\n{ex.Message}";
+            }
+        }
+
         public static async Task<string> OpenAI(string text, CancellationToken token = default)
         {
             var config = Translator.Setting["OpenAI"] as OpenAIConfig;
@@ -899,7 +969,6 @@ namespace LiveCaptionsTranslator.apis
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
 
-                    // ▼ ここを条件分岐に変更 ▼
                     if (Translator.Setting?.BatchUseJsonMode ?? true)
                     {
                         requestData.response_format = new { type = "json_object" }; // JSONモード
@@ -909,17 +978,28 @@ namespace LiveCaptionsTranslator.apis
                 string jsonContent = JsonSerializer.Serialize(requestData, requestData.GetType());
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                var response = await client.PostAsync(TextUtil.NormalizeUrl(openAiConfig.ApiUrl), content, token);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    string responseString = await response.Content.ReadAsStringAsync();
-                    var responseObj = JsonSerializer.Deserialize<OpenAIConfig.Response>(responseString);
-                    return ExtractJsonArray(responseObj.choices[0].message.content);
+                    var response = await client.PostAsync(TextUtil.NormalizeUrl(openAiConfig.ApiUrl), content, token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseString = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, responseString);
+                        var responseObj = JsonSerializer.Deserialize<OpenAIConfig.Response>(responseString);
+                        return ExtractJsonArray(responseObj.choices[0].message.content);
+                    }
+                    else
+                    {
+                        string errBody = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, errBody, $"HTTP Error - {response.StatusCode}");
+                        return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string errBody = await response.Content.ReadAsStringAsync();
-                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    // タイムアウトなどのエラー時も送信したデータをログに残す
+                    UpdateLastBatchLog(apiName, jsonContent, "", $"Exception: {ex.Message}");
+                    throw;
                 }
             }
             else if (apiName == "Ollama")
@@ -938,7 +1018,6 @@ namespace LiveCaptionsTranslator.apis
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
                     requestData.keep_alive = ollamaConfig.keep_alive;
 
-                    // ▼ ここを条件分岐に変更 ▼
                     if (Translator.Setting?.BatchUseJsonMode ?? true)
                     {
                         if (requestData is OllamaRequestData oReq) oReq.format = "json"; // JSONモード
@@ -949,24 +1028,34 @@ namespace LiveCaptionsTranslator.apis
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
 
-                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    string responseString = await response.Content.ReadAsStringAsync();
-                    var responseObj = JsonSerializer.Deserialize<OllamaConfig.Response>(responseString);
-                    return ExtractJsonArray(responseObj.message.content);
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseString = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, responseString);
+                        var responseObj = JsonSerializer.Deserialize<OllamaConfig.Response>(responseString);
+                        return ExtractJsonArray(responseObj.message.content);
+                    }
+                    else
+                    {
+                        string errBody = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, errBody, $"HTTP Error - {response.StatusCode}");
+                        return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string errBody = await response.Content.ReadAsStringAsync();
-                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    // タイムアウトなどのエラー時も送信したデータをログに残す
+                    UpdateLastBatchLog(apiName, jsonContent, "", $"Exception: {ex.Message}");
+                    throw;
                 }
             }
             else if (apiName == "OpenRouter")
             {
                 var openRouterConfig = config as OpenRouterConfig;
 
-                // ▼ 修正: 固定文字列から openRouterConfig.ApiUrl をベースに構築する形に変更
                 string apiUrl = TextUtil.NormalizeUrl(openRouterConfig.ApiUrl) + "/chat/completions";
 
                 var messages = new List<BaseLLMConfig.Message>
@@ -980,7 +1069,6 @@ namespace LiveCaptionsTranslator.apis
                 {
                     requestData.max_tokens = Translator.Setting?.BatchMaxTokens ?? 4096;
 
-                    // ▼ ここを条件分岐に変更 ▼
                     if (Translator.Setting?.BatchUseJsonMode ?? true)
                     {
                         requestData.response_format = new { type = "json_object" }; // JSONモード
@@ -992,21 +1080,32 @@ namespace LiveCaptionsTranslator.apis
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {openRouterConfig?.ApiKey}");
 
-                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var output = jsonResponse.GetProperty("choices")[0]
-                                             .GetProperty("message")
-                                             .GetProperty("content")
-                                             .GetString() ?? string.Empty;
-                    return ExtractJsonArray(output);
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, responseContent);
+                        var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        var output = jsonResponse.GetProperty("choices")[0]
+                                                 .GetProperty("message")
+                                                 .GetProperty("content")
+                                                 .GetString() ?? string.Empty;
+                        return ExtractJsonArray(output);
+                    }
+                    else
+                    {
+                        string errBody = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, errBody, $"HTTP Error - {response.StatusCode}");
+                        return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string errBody = await response.Content.ReadAsStringAsync();
-                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    // タイムアウトなどのエラー時も送信したデータをログに残す
+                    UpdateLastBatchLog(apiName, jsonContent, "", $"Exception: {ex.Message}");
+                    throw;
                 }
             }
             else if (apiName == "LMStudio")
@@ -1045,31 +1144,42 @@ namespace LiveCaptionsTranslator.apis
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 client.DefaultRequestHeaders.Clear();
 
-                HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    string responseString = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseString);
-                    var root = doc.RootElement;
-                    if (root.TryGetProperty("output", out var outputArray) &&
-                        outputArray.ValueKind == JsonValueKind.Array)
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content, token);
+                    if (response.IsSuccessStatusCode)
                     {
-                        foreach (var item in outputArray.EnumerateArray())
+                        string responseString = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, responseString);
+                        using var doc = JsonDocument.Parse(responseString);
+                        var root = doc.RootElement;
+                        if (root.TryGetProperty("output", out var outputArray) &&
+                            outputArray.ValueKind == JsonValueKind.Array)
                         {
-                            if (item.TryGetProperty("type", out var typeProp) &&
-                                typeProp.GetString() == "message" &&
-                                item.TryGetProperty("content", out var contentProp))
+                            foreach (var item in outputArray.EnumerateArray())
                             {
-                                return ExtractJsonArray(contentProp.GetString() ?? "");
+                                if (item.TryGetProperty("type", out var typeProp) &&
+                                    typeProp.GetString() == "message" &&
+                                    item.TryGetProperty("content", out var contentProp))
+                                {
+                                    return ExtractJsonArray(contentProp.GetString() ?? "");
+                                }
                             }
                         }
+                        return "[ERROR] Unexpected response format";
                     }
-                    return "[ERROR] Unexpected response format";
+                    else
+                    {
+                        string errBody = await response.Content.ReadAsStringAsync();
+                        UpdateLastBatchLog(apiName, jsonContent, errBody, $"HTTP Error - {response.StatusCode}");
+                        return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string errBody = await response.Content.ReadAsStringAsync();
-                    return $"[ERROR] HTTP Error - {response.StatusCode}: {errBody}";
+                    // タイムアウトなどのエラー時も送信したデータをログに残す
+                    UpdateLastBatchLog(apiName, jsonContent, "", $"Exception: {ex.Message}");
+                    throw;
                 }
             }
 
