@@ -31,7 +31,7 @@ namespace LiveCaptionsTranslator.models
             {
                 var list = GetCompletedContexts(MAX_CONTEXTS).ToList();
 
-                if (Translator.Setting?.MainWindow?.HidePreviewEnabled == true)
+                if (Translator.Setting?.MainWindow?.ShowPreviewCaption == false)
                 {
                     return list;
                 }

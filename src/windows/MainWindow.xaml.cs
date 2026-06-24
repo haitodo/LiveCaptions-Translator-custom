@@ -68,7 +68,7 @@ namespace LiveCaptionsTranslator
             ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
             UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
             UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
-            UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.HidePreviewEnabled);
+            UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.ShowPreviewCaption);
 
             // 設定値の変更を監視し、UI表示を常にモデルと同期させる
             if (Translator.Setting != null && Translator.Setting.MainWindow != null)
@@ -302,7 +302,7 @@ namespace LiveCaptionsTranslator
                 if (enabled)
                 {
                     icon.Symbol = SymbolRegular.Eye24;
-                    icon.Filled = true;
+                    icon.Filled = false;
                 }
                 else
                 {
@@ -324,16 +324,14 @@ namespace LiveCaptionsTranslator
         {
             if (AutoScrollButton.Icon is SymbolIcon icon)
             {
-                AutoScrollButton.Appearance = enabled ? ControlAppearance.Primary : ControlAppearance.Transparent;
-
                 if (enabled)
                 {
                     icon.Symbol = SymbolRegular.ArrowDown24;
-                    icon.Filled = true;
+                    icon.Filled = false;
                 }
                 else
                 {
-                    icon.Symbol = SymbolRegular.ArrowDown24;
+                    icon.Symbol = SymbolRegular.ArrowUp24;
                     icon.Filled = false;
                 }
             }
@@ -342,7 +340,7 @@ namespace LiveCaptionsTranslator
         {
             if (Translator.Setting?.MainWindow != null)
             {
-                Translator.Setting.MainWindow.HidePreviewEnabled = !Translator.Setting.MainWindow.HidePreviewEnabled;
+                Translator.Setting.MainWindow.ShowPreviewCaption = !Translator.Setting.MainWindow.ShowPreviewCaption;
             }
         }
 
@@ -352,8 +350,16 @@ namespace LiveCaptionsTranslator
 
             if (TogglePreviewButton.Icon is SymbolIcon icon)
             {
-                TogglePreviewButton.Appearance = hideEnabled ? ControlAppearance.Primary : ControlAppearance.Transparent;
-                icon.Filled = hideEnabled;
+                if (hideEnabled)
+                {
+                    icon.Symbol = SymbolRegular.EyeTracking16;
+                    icon.Filled = false; // 塗りつぶし
+                }
+                else
+                {
+                    icon.Symbol = SymbolRegular.EyeTrackingOff16;
+                    icon.Filled = false;
+                }
             }
         }
         private void MainWindowSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -380,13 +386,13 @@ namespace LiveCaptionsTranslator
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
             }
-            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.HidePreviewEnabled))
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.ShowPreviewCaption))
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (Translator.Setting?.MainWindow != null)
                     {
-                        UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.HidePreviewEnabled);
+                        UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.ShowPreviewCaption);
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
             }

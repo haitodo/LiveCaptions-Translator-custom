@@ -218,7 +218,7 @@ namespace LiveCaptionsTranslator
             {
                 Dispatcher.BeginInvoke(new Action(() => UpdateTranslatedFontSize()), DispatcherPriority.Background);
             }
-            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.HidePreviewEnabled))
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.ShowPreviewCaption))
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
@@ -259,8 +259,8 @@ namespace LiveCaptionsTranslator
             {
                 // ログカードモードOFF: ログカードを非表示にして翻訳カードのみ表示
                 LogCards.Visibility = Visibility.Collapsed;
-                // 非表示設定がオンなら通常モードの最新表示カード自体を非表示にする
-                if (Translator.Setting?.MainWindow?.HidePreviewEnabled == true)
+                // プレビュー表示設定次第で、最新表示カード自体を非表示にする
+                if (Translator.Setting?.MainWindow?.ShowPreviewCaption == false)
                 {
                     TranslatedCaptionCard.Visibility = Visibility.Collapsed;
                     OriginalCaptionCard.Visibility = Visibility.Collapsed;

@@ -80,7 +80,7 @@
                             Margin="0,0,5,0"
                             Appearance="Transparent"
                             Click="TogglePreviewButton_Click"
-                            Icon="{ui:SymbolIcon EyeOff16, Filled=False}"
+                            Icon="{ui:SymbolIcon EyeTracking16, Filled=False}"
                             ToolTip="未確定プレビューの表示/非表示" />
                         <ui:Button
                             x:Name="LogOnlyButton"
