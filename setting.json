@@ -22,6 +22,7 @@
     "CaptionLogEnabled": true,
     "ShowOriginalCaption": false,
     "AutoScrollEnabled": true,
+    "HidePreviewEnabled": false,
     "LatencyShow": false,
     "CaptionFontSize": 18,
     "CaptionFontColor": 0,

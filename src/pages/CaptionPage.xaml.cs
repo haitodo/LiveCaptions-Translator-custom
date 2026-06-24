@@ -218,6 +218,14 @@ namespace LiveCaptionsTranslator
             {
                 Dispatcher.BeginInvoke(new Action(() => UpdateTranslatedFontSize()), DispatcherPriority.Background);
             }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.HidePreviewEnabled))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    CollapseTranslatedCaption(Translator.Setting.MainWindow.CaptionLogEnabled);
+                    AutoHeight(); // 高さが変わるため再計算
+                }), DispatcherPriority.Background);
+            }
         }
 
         private void UpdateOriginalCaptionVisibility()
@@ -251,8 +259,17 @@ namespace LiveCaptionsTranslator
             {
                 // ログカードモードOFF: ログカードを非表示にして翻訳カードのみ表示
                 LogCards.Visibility = Visibility.Collapsed;
-                TranslatedCaptionCard.Visibility = Visibility.Visible;
-                UpdateOriginalCaptionVisibility();
+                // 非表示設定がオンなら通常モードの最新表示カード自体を非表示にする
+                if (Translator.Setting?.MainWindow?.HidePreviewEnabled == true)
+                {
+                    TranslatedCaptionCard.Visibility = Visibility.Collapsed;
+                    OriginalCaptionCard.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    TranslatedCaptionCard.Visibility = Visibility.Visible;
+                    UpdateOriginalCaptionVisibility();
+                }
             }
         }
 

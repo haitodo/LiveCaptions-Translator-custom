@@ -68,6 +68,7 @@ namespace LiveCaptionsTranslator
             ShowLogCard(Translator.Setting.MainWindow.CaptionLogEnabled);
             UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
             UpdateAutoScrollButton(Translator.Setting.MainWindow.AutoScrollEnabled);
+            UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.HidePreviewEnabled);
 
             // 設定値の変更を監視し、UI表示を常にモデルと同期させる
             if (Translator.Setting != null && Translator.Setting.MainWindow != null)
@@ -337,7 +338,24 @@ namespace LiveCaptionsTranslator
                 }
             }
         }
+        private void TogglePreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Translator.Setting?.MainWindow != null)
+            {
+                Translator.Setting.MainWindow.HidePreviewEnabled = !Translator.Setting.MainWindow.HidePreviewEnabled;
+            }
+        }
 
+        public void UpdateTogglePreviewButtonState(bool hideEnabled)
+        {
+            if (TogglePreviewButton == null) return;
+
+            if (TogglePreviewButton.Icon is SymbolIcon icon)
+            {
+                TogglePreviewButton.Appearance = hideEnabled ? ControlAppearance.Primary : ControlAppearance.Transparent;
+                icon.Filled = hideEnabled;
+            }
+        }
         private void MainWindowSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (Translator.Setting?.MainWindow == null) return;
@@ -359,6 +377,16 @@ namespace LiveCaptionsTranslator
                     if (Translator.Setting?.MainWindow != null)
                     {
                         UpdateShowOriginalButton(Translator.Setting.MainWindow.ShowOriginalCaption);
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+            else if (e.PropertyName == nameof(Translator.Setting.MainWindow.HidePreviewEnabled))
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (Translator.Setting?.MainWindow != null)
+                    {
+                        UpdateTogglePreviewButtonState(Translator.Setting.MainWindow.HidePreviewEnabled);
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
             }

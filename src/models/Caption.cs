@@ -31,6 +31,11 @@ namespace LiveCaptionsTranslator.models
             {
                 var list = GetCompletedContexts(MAX_CONTEXTS).ToList();
 
+                if (Translator.Setting?.MainWindow?.HidePreviewEnabled == true)
+                {
+                    return list;
+                }
+
                 string activeSource = displayOriginalCaption?.Trim() ?? string.Empty;
                 string activeTranslated = displayTranslatedCaption?.Trim() ?? string.Empty;
 

@@ -14,6 +14,7 @@ namespace LiveCaptionsTranslator.models
         private bool latencyShow = false;
         private bool showOriginalCaption = false;
         private bool autoScrollEnabled = true;
+        private bool hidePreviewEnabled = false;
 
         private int captionFontSize = 18;
         private Color captionFontColor = Color.Default;
@@ -58,6 +59,15 @@ namespace LiveCaptionsTranslator.models
             {
                 autoScrollEnabled = value;
                 OnPropertyChanged("AutoScrollEnabled");
+            }
+        }
+        public bool HidePreviewEnabled
+        {
+            get => hidePreviewEnabled;
+            set
+            {
+                hidePreviewEnabled = value;
+                OnPropertyChanged("HidePreviewEnabled");
             }
         }
         public bool LatencyShow
