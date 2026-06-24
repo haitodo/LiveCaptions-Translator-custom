@@ -49,10 +49,44 @@ namespace LiveCaptionsTranslator
             TargetLanguageTextBlock.Text = targetLanguage;
             SentencesListView.ItemsSource = items;
         }
-        private void ExportLogButton_Click(object sender, RoutedEventArgs e)
+        private void CopyRequestButton_Click(object sender, RoutedEventArgs e)
         {
-            string resultMsg = LiveCaptionsTranslator.apis.TranslateAPI.ExportLastBatchLog();
-            System.Windows.MessageBox.Show(resultMsg, "通信ログ出力", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+            string reqLog = apis.TranslateAPI.GetFormattedRequestLog();
+            if (string.IsNullOrEmpty(reqLog))
+            {
+                System.Windows.MessageBox.Show("コピーするリクエストデータがありません。", "情報", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                System.Windows.Clipboard.SetText(reqLog);
+                System.Windows.MessageBox.Show("リクエスト内容をクリップボードにコピーしました。", "コピー完了", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch
+            {
+                System.Windows.MessageBox.Show("クリップボードへのアクセスに失敗しました。", "エラー", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CopyResponseButton_Click(object sender, RoutedEventArgs e)
+        {
+            string resLog = apis.TranslateAPI.GetFormattedResponseLog();
+            if (string.IsNullOrEmpty(resLog))
+            {
+                System.Windows.MessageBox.Show("コピーするレスポンスデータがありません。", "情報", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                System.Windows.Clipboard.SetText(resLog);
+                System.Windows.MessageBox.Show("レスポンス内容をクリップボードにコピーしました。", "コピー完了", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch
+            {
+                System.Windows.MessageBox.Show("クリップボードへのアクセスに失敗しました。", "エラー", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 

@@ -85,50 +85,28 @@ namespace LiveCaptionsTranslator.apis
             };
         }
 
-        public static string ExportLastBatchLog()
+        public static string GetFormattedRequestLog()
         {
-            if (LastBatchLog == null) return "出力できる通信ログがありません。";
-
+            if (LastBatchLog == null || string.IsNullOrEmpty(LastBatchLog.RequestJson)) return string.Empty;
             try
             {
-                string logDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
-                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
-
-                string timestamp = LastBatchLog.Timestamp.ToString("yyyyMMdd_HHmmss");
-                string filePath = Path.Combine(logDir, $"batch_debug_{LastBatchLog.ApiName}_{timestamp}.json");
-
-                // 整形用にJSONオブジェクトとしてパースを試みる
-                object requestObj = LastBatchLog.RequestJson;
-                try { requestObj = JsonSerializer.Deserialize<object>(LastBatchLog.RequestJson ?? "{}"); } catch { }
-
-                object responseObj = LastBatchLog.ResponseText;
-                if (!string.IsNullOrEmpty(LastBatchLog.ResponseText))
-                {
-                    try { responseObj = JsonSerializer.Deserialize<object>(LastBatchLog.ResponseText); } catch { }
-                }
-
-                var logData = new
-                {
-                    Timestamp = LastBatchLog.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff"),
-                    ApiName = LastBatchLog.ApiName,
-                    Request = requestObj,
-                    Response = responseObj,
-                    Error = LastBatchLog.ErrorMsg
-                };
-
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
-                File.WriteAllText(filePath, JsonSerializer.Serialize(logData, options), Encoding.UTF8);
-
-                return $"API通信ログを出力しました。\n保存先: {filePath}";
+                var parsed = JsonSerializer.Deserialize<object>(LastBatchLog.RequestJson);
+                var options = new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+                return JsonSerializer.Serialize(parsed, options);
             }
-            catch (Exception ex)
+            catch { return LastBatchLog.RequestJson; } // パース失敗時はそのまま返す
+        }
+
+        public static string GetFormattedResponseLog()
+        {
+            if (LastBatchLog == null || string.IsNullOrEmpty(LastBatchLog.ResponseText)) return string.Empty;
+            try
             {
-                return $"ログの出力に失敗しました:\n{ex.Message}";
+                var parsed = JsonSerializer.Deserialize<object>(LastBatchLog.ResponseText);
+                var options = new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+                return JsonSerializer.Serialize(parsed, options);
             }
+            catch { return LastBatchLog.ResponseText; } // パース失敗時はそのまま返す
         }
 
         public static async Task<string> OpenAI(string text, CancellationToken token = default)

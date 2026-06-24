@@ -64,7 +64,10 @@
                     <ui:TextBlock x:Name="TargetLanguageTextBlock" Text="ja-JP" Margin="4,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="ログ出力" Click="ExportLogButton_Click" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="req" Click="CopyRequestButton_Click" Margin="0,0,8,0" />
+                    <Button Content="res" Click="CopyResponseButton_Click" />
+                </StackPanel>
             </Grid>
 
             <Border Grid.Row="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
